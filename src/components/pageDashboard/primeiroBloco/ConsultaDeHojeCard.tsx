@@ -1,17 +1,20 @@
+import { useNavigate } from "react-router-dom";
+import type { AlertaItem } from "../../../types/Alerta";
+
 export interface ConsultaDeHojeCardProps{
-    scoreDeRisco : number;
-    nomePaciente: string;
-    telefonePaciente: string;
-    horaConsulta: string;
-    nomeMedico: string;
-    especialidadeConsulta: string;
+    consultaDeHoje: AlertaItem;
 }
 
-export function ConsultaDeHojeCard({ scoreDeRisco, nomePaciente, telefonePaciente, horaConsulta, nomeMedico, especialidadeConsulta}: ConsultaDeHojeCardProps){
+export function ConsultaDeHojeCard({ consultaDeHoje: consultaDeHoje }: ConsultaDeHojeCardProps) {
     
-    const riskLevel = scoreDeRisco > 80 ? 'ALTO' : scoreDeRisco > 60 ? 'MEDIO' : 'BAIXO';
+    const riskLevel = consultaDeHoje.scoreDeRisco > 80 ? 'ALTO' : consultaDeHoje.scoreDeRisco > 60 ? 'MEDIO' : 'BAIXO';
     const borderClass = riskLevel === 'ALTO' ? 'border-red-500' : riskLevel === 'MEDIO' ? 'border-yellow-500' : 'border-blue-500';
     const scoreColor = riskLevel === 'ALTO' ? 'text-red-600' : riskLevel === 'MEDIO' ? 'text-yellow-600' : 'text-blue-600';
+
+    const navegacao = useNavigate();
+    const handleClick = () => {
+        navegacao(`/historico/${consultaDeHoje.idPaciente}`); 
+    };
 
     return (
         <div className={`p-4 border-l-4 ${borderClass} bg-white rounded-lg shadow-md flex justify-between items-center transition duration-200 hover:shadow-lg`}>
@@ -20,15 +23,15 @@ export function ConsultaDeHojeCard({ scoreDeRisco, nomePaciente, telefonePacient
                 
                 <div className={`flex flex-col items-center justify-center w-16 h-16 rounded-full border-2 border-current ${scoreColor} bg-gray-50`}>
                     <span className="text-xs font-bold uppercase">Risco</span>
-                    <span className="text-xl font-extrabold">{scoreDeRisco}</span>
+                    <span className="text-xl font-extrabold">{consultaDeHoje.scoreDeRisco}</span>
                 </div>
 
                 <div>
-                    <h5 className="font-bold text-lg text-gray-800">{nomePaciente}</h5>
-                    <p className="text-xs text-gray-500">Tel: {telefonePaciente}</p>
+                    <h5 className="font-bold text-lg text-gray-800">{consultaDeHoje.nomePaciente}</h5>
+                    <p className="text-xs text-gray-500">Tel: {consultaDeHoje.telefonePaciente}</p>
                     
                     <p className="text-sm text-gray-700 mt-1">
-                        Consulta: {horaConsulta} com Dr(a). {nomeMedico} | {especialidadeConsulta}
+                        Consulta: {consultaDeHoje.horaConsulta} com Dr(a). {consultaDeHoje.nomeMedico} | {consultaDeHoje.especialidadeConsulta}
                     </p>
                     
                     <p className="text-xs text-red-500 mt-1 flex items-center">
@@ -39,9 +42,10 @@ export function ConsultaDeHojeCard({ scoreDeRisco, nomePaciente, telefonePacient
             
             <button
                 type="button"
+                onClick={handleClick}
                 className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg text-sm transition duration-200 shadow-md flex items-center"
             >
-                VER HISTÓRICO E AGIR
+                VER HISTÓRICO
             </button>
         </div>
     );

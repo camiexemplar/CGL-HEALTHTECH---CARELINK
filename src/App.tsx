@@ -19,7 +19,7 @@ import { FaqPage } from "./pages/Faq";
 import { ContactPage } from "./pages/ContactUs";
 import { TeamPage } from "./pages/TeamPage";
 import { PublicLayout } from "./components/Home/PublicLayout";
-import { PatientHistory } from "./pages/historicoPaciente";
+import { HistoricoPaciente } from "./pages/historicoPaciente";
 
 function App() {
   return (
@@ -44,7 +44,8 @@ function App() {
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/importar" element={<FileUploader />} />
                   <Route path="/validate" element={<ValidateForm />} />
-                  <Route path="/historico" element={<PatientHistory />} />
+                  <Route path="/historico/:idPaciente" element={<HistoricoPaciente />} />
+                  <Route path="/historico" element={<HistoricoPaciente />} />
                   <Route path="/alertas" element={<SendAlerts />} />
                 </Route>
               </Route>
