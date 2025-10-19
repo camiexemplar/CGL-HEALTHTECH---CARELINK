@@ -1,16 +1,16 @@
 import { useState, type FormEvent } from "react";
 
-interface PatientSearchProps {
-  setPatientId: (id: string) => void; 
+interface PesquisaPacienteProps {
+  setIdPaciente: (id: string) => void; 
 }
 
-export function PatientSearch({ setPatientId }: PatientSearchProps) {
+export function PesquisaPaciente({ setIdPaciente }: PesquisaPacienteProps) {
   const [input, setInput] = useState('');
 
   const handleSearch = (e: FormEvent) => {
     e.preventDefault();
     if (input.trim()) {
-      setPatientId(input.trim());
+      setIdPaciente(input.trim());
     }
   };
 

@@ -46,7 +46,7 @@ export function useDadosPaciente() {
 
   return {
     idPaciente: idPaciente,
-    setPatientId: setIdPaciente,
+    setIdPaciente: setIdPaciente,
     paciente: paciente,
     setPaciente: setPaciente,
     carregando: carregando,

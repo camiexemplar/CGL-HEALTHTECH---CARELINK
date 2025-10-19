@@ -1,18 +1,29 @@
-import { PatientSearch } from "../components/pagePatientHistory/PatientSearch";
 import { BlocoDeAcoes } from "../components/pagePatientHistory/BlocoAcoes/BlocoDeAcoes";
 import { LinhaDoTempo } from "../components/pagePatientHistory/LinhaDoTempo/LinhaDoTempo";
 import { useDadosPaciente } from "../components/pagePatientHistory/Hooks/useDadosPaciente";
 import { useTimelineLogic } from "../components/pagePatientHistory/Hooks/useTimelineLogic";
 import { BlocoIdentificacao } from "../components/pagePatientHistory/BlocoIdentificacao/BlocoIdentificacao";
+import { useParams } from "react-router-dom";
+import { useEffect } from "react";
+import { PesquisaPaciente } from "../components/pagePatientHistory/PesquisaPaciente";
 
-export function PatientHistory() {
+export function HistoricoPaciente() {
+  const { idPaciente: idPacienteUrl } = useParams<{ idPaciente: string }>();
+
   const {
-    idPaciente: idPaciente,
-    setPatientId: setPacienteId,
+    idPaciente: idPacienteDoHook,
+    setIdPaciente: setIdPaciente,
     paciente: paciente,
     setPaciente: setPaciente,
     carregando: carregando,
   } = useDadosPaciente();
+
+  useEffect(() => {
+    // Se há um ID na URL, mas o Hook ainda não tem esse ID (para evitar loops)
+    if (idPacienteUrl && idPacienteUrl !== idPacienteDoHook) {
+        setIdPaciente(idPacienteUrl);
+    }
+  }, [idPacienteUrl, idPacienteDoHook, setIdPaciente]);
 
   const {
     filter,
@@ -22,15 +33,15 @@ export function PatientHistory() {
     filteredAndSortedHistory,
   } = useTimelineLogic(paciente?.linhaDoTempo);
 
-  if (!idPaciente || carregando) {
+  if (!idPacienteDoHook || carregando) {
     return (
       <div className="justify-center">
         {carregando ? (
           <div className="text-xl text-blue-600">
-            Carregando Histórico de {idPaciente}...
+            Carregando Histórico de {idPacienteDoHook}...
           </div>
         ) : (
-          <PatientSearch setPatientId={setPacienteId} />
+          <PesquisaPaciente setIdPaciente={setIdPaciente} />
         )}
       </div>
     );
@@ -40,10 +51,10 @@ export function PatientHistory() {
     return (
       <div className="flex flex-col items-center p-4 min-h-screen bg-gray-100">
         <p className="text-xl text-red-500 p-8">
-          Paciente com ID "{idPaciente}" não encontrado.
+          Paciente com ID "{idPacienteDoHook}" não encontrado.
         </p>
         <button
-          onClick={() => setPacienteId(null)}
+          onClick={() => setIdPaciente(null)}
           className="mt-4 bg-blue-600 text-white py-2 px-4 rounded"
         >
           Nova Busca
