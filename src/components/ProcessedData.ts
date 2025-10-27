@@ -11,4 +11,5 @@ export interface ProcessedData {
   "Link": string;
   "Código": number;
   "OBS": string;
+  "CEP": string;
 }

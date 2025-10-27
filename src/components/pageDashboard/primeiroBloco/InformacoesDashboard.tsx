@@ -18,7 +18,7 @@ export function InformacoesDashboard({
     ) ?? [];
 
   const pacientesAltoRisco =
-    alertaItem?.filter((item) => item.nivelDeRisco === "ALTO").length ?? 0;
+    alertaItem?.filter((item) => item.nivelDeRisco === "ALTO" || item.nivelDeRisco === "CRITICO").length ?? 0;
 
   return (
     <div className="space-y-6">

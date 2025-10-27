@@ -1,19 +1,20 @@
 export interface DadosPaciente {
-    // CAMPO OBRIGATÓRIO PARA A BUSCA
-    idPaciente: string;
-    nomePaciente: string;
-    telefonePaciente: string;
-    cuidador: Cuidador | null; 
-    scoreDeRisco: number | null; 
-    nivelDeRisco: "ALTO" | "MEDIO" | "BAIXO" | null; 
-    fatoresDeRisco: string[] | null; 
-    proximaConsulta: ConsultaDTO | null; 
-    linhaDoTempo: LinhaDoTempoDTO[]; 
+  idPaciente: string;
+  nomePaciente: string;
+  telefonePaciente: string;
+  bairroPaciente: string;
+  dataNascimentoPaciente: string;
+  cuidador: Cuidador | null;
+  scoreDeRisco: number | null;
+  nivelDeRisco: "CRITICO" | "ALTO" | "MEDIO" | "BAIXO" | null;
+  fatoresDeRisco: string[] | null;
+  proximaConsulta: ConsultaDTO | null;
+  linhaDoTempo: LinhaDoTempoDTO[];
 }
 
 export interface Cuidador {
-    nomeCuidador: string | null;
-    telefoneCuidador: string | null;
+  nomeCuidador: string | null;
+  telefoneCuidador: string | null;
 }
 
 export interface ConsultaDTO {
@@ -23,7 +24,10 @@ export interface ConsultaDTO {
   especialidadeConsulta: string;
 }
 
-export type TipoInteracao = | "CONSULTA" | "INTERACAO_SISTEMA" | "ANOTACAO_EQUIPE";
+export type TipoInteracao =
+  | "CONSULTA"
+  | "INTERACAO_SISTEMA"
+  | "ANOTACAO_EQUIPE";
 
 export interface InteracaoBase {
   id: string;
@@ -52,7 +56,10 @@ export interface InteracaoSistema extends InteracaoBase {
   log: string;
 }
 
-export type LinhaDoTempoDTO = | InteracaoConsulta | InteracaoSistema | InteracaoEquipe;
+export type LinhaDoTempoDTO =
+  | InteracaoConsulta
+  | InteracaoSistema
+  | InteracaoEquipe;
 
 export interface AnotacaoInputDTO {
   idPaciente: string;
@@ -61,7 +68,7 @@ export interface AnotacaoInputDTO {
 }
 
 export interface AnotacaoUpdateDTO {
-  idAnotacao: string; 
+  idAnotacao: string;
   idUsuario: string;
   novoConteudo: string;
 }

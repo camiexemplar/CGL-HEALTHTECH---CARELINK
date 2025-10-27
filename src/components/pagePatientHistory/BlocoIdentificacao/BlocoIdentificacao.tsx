@@ -17,6 +17,8 @@ export function BlocoIdentificacao({
       <PacienteCard
         nome={paciente.nomePaciente}
         telefone={paciente.telefonePaciente}
+        bairro={paciente.bairroPaciente}
+        dataNascimento={paciente.dataNascimentoPaciente}
       />
 
       {paciente.cuidador && (

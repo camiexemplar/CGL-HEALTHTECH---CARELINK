@@ -7,9 +7,10 @@ export interface ConsultaDeHojeCardProps{
 
 export function ConsultaDeHojeCard({ consultaDeHoje: consultaDeHoje }: ConsultaDeHojeCardProps) {
     
-    const riskLevel = consultaDeHoje.scoreDeRisco > 80 ? 'ALTO' : consultaDeHoje.scoreDeRisco > 60 ? 'MEDIO' : 'BAIXO';
-    const borderClass = riskLevel === 'ALTO' ? 'border-red-500' : riskLevel === 'MEDIO' ? 'border-yellow-500' : 'border-blue-500';
-    const scoreColor = riskLevel === 'ALTO' ? 'text-red-600' : riskLevel === 'MEDIO' ? 'text-yellow-600' : 'text-blue-600';
+    const riskLevel = consultaDeHoje.scoreDeRisco > 800 ? 'CRITICO' : consultaDeHoje.scoreDeRisco <= 800 && consultaDeHoje.scoreDeRisco > 500 ? 'ALTO' : 
+        consultaDeHoje.scoreDeRisco <= 500 && consultaDeHoje.scoreDeRisco > 200 ? 'MEDIO' : 'BAIXO';
+    const borderClass = riskLevel === 'CRITICO' ? 'border-red-700' : riskLevel === 'ALTO' ? 'border-orange-500' : riskLevel === 'MEDIO' ? 'border-yellow-500' : 'border-blue-500';
+    const scoreColor = riskLevel === 'CRITICO' ? 'text-red-700' : riskLevel === 'ALTO' ? 'text-orange-500' : riskLevel === 'MEDIO' ? 'text-yellow-500' : 'text-blue-500';
 
     const navegacao = useNavigate();
     const handleClick = () => {
