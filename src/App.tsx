@@ -20,6 +20,7 @@ import { ContactPage } from "./pages/ContactUs";
 import { TeamPage } from "./pages/TeamPage";
 import { PublicLayout } from "./components/Home/PublicLayout";
 import { HistoricoPaciente } from "./pages/historicoPaciente";
+import CalendarPage from "./pages/Calendar";
 
 function App() {
   return (
@@ -45,6 +46,7 @@ function App() {
                   <Route path="/importar" element={<FileUploader />} />
                   <Route path="/validate" element={<ValidateForm />} />
                   <Route path="/historico/:idPaciente" element={<HistoricoPaciente />} />
+                  <Route path="/calendario" element={<CalendarPage />} />
                   <Route path="/historico" element={<HistoricoPaciente />} />
                   <Route path="/alertas" element={<SendAlerts />} />
                 </Route>
