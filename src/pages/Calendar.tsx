@@ -1,214 +1,438 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
+
 import {
+
   type EventInput,
+
   type DateSelectArg,
+
   type EventDropArg,
+
   type EventClickArg,
+
   type DatesSetArg
+
 } from '@fullcalendar/core';
+
 import { type EventResizeDoneArg } from '@fullcalendar/interaction';
+
 import FullCalendar from '@fullcalendar/react';
+
+
+
 import CalendarComponent from '../components/pageCalendar/CalendarComponent';
-import EventModal, { type FormData as ModalFormData } from '../components/pageCalendar/EventModal';
+
+import EventModal from '../components/pageCalendar/EventModal';
+
 import SidebarCalendar from '../components/pageCalendar/SidebarCalendar';
+
 import { CATEGORIAS_CONSULTA } from '../components/pageCalendar/dataCalendar';
-import { AgendamentoService } from '../components/pageCalendar/AgendamentoService'; // Ajuste o caminho
+
+
+
+interface NewEventData {
+
+  title: string;
+
+  color: string;
+
+  start: Date;
+
+  end: Date;
+
+  patientName: string;
+
+  profissionalName: string;
+
+  category: string;
+
+  status: 'Agendada' | 'Realizada' | 'Paciente Faltou' | 'Cancelada' | '';
+
+  modalidadeReal?: 'Presencial' | 'Teleconsulta' | '';
+
+  anotacoes: string;
+
+}
+
+
+
 
 
 export default function Calendar() {
-    // Estados principais
+
   const [eventos, setEventos] = useState<EventInput[]>([]);
+
   const [isLoading, setIsLoading] = useState(true);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
+
   const [selectedSlot, setSelectedSlot] = useState<DateSelectArg | undefined>();
+
   const [eventoSelecionado, setEventoSelecionado] = useState<EventInput | undefined>();
+
   const [filtrosAtivos, setFiltrosAtivos] = useState<string[]>(
+
     CATEGORIAS_CONSULTA.map((c) => c.id)
+
   );
-  const [currentDate, setCurrentDate] = useState(new Date()); // Usando a data atual por padrão
+
+  const [currentDate, setCurrentDate] = useState(new Date(2025, 9, 26));
+
+
 
   const calendarRef = useRef<FullCalendar>(null);
 
-// carregando agendamentos do back
+
+
   useEffect(() => {
+
     const fetchAgendamentos = async () => {
+
       try {
+
         setIsLoading(true);
-        // busca os eventos na API do Quarkus
-        const data = await AgendamentoService.fetchAll(); 
-        setEventos(data);
+
+        const { eventosDaSemana } = await import(
+
+          '../components/pageCalendar/dataCalendar'
+
+        );
+
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        setEventos(eventosDaSemana);
+
       } catch (error) {
+
         console.error('Erro ao buscar agendamentos:', error);
+
       } finally {
+
         setIsLoading(false);
+
       }
+
     };
+
     fetchAgendamentos();
+
   }, []);
 
+
+
   const eventosFiltrados = useMemo(() => {
+
     return eventos.filter((evento) =>
-      evento.extendedProps?.category
-        ? filtrosAtivos.includes(evento.extendedProps.category)
+
+      evento.extendedProps?.categoriaId
+
+        ? filtrosAtivos.includes(evento.extendedProps.categoriaId)
+
         : true
+
     );
+
   }, [eventos, filtrosAtivos]);
 
+
+
   const handleSelectSlot = (slotInfo: DateSelectArg) => {
+
     setSelectedSlot(slotInfo);
+
     setEventoSelecionado(undefined);
+
     setIsModalOpen(true);
+
   };
 
-  const handleEventClick = (clickInfo: EventClickArg) => {
+
+
+const handleEventClick = (clickInfo: EventClickArg) => {
+
+
+
     const start = clickInfo.event.start;
+
     const end = clickInfo.event.end;
-    
-    setEventoSelecionado({
+
+      setEventoSelecionado({
+
       id: clickInfo.event.id,
+
       title: clickInfo.event.title,
-      start: start as Date, 
+
+      start: start as Date,
+
       end: end as Date,
+
       color: clickInfo.event.backgroundColor,
+
       extendedProps: clickInfo.event.extendedProps
+
     });
 
+
+
     setSelectedSlot(undefined);
+
     setIsModalOpen(true);
+
   };
 
-  const handleCreateEvent = async (data: ModalFormData) => {
-      try {
-        const novoEvento = await AgendamentoService.create(data); 
-        setEventos((prev) => [...prev, novoEvento]);
-        handleCloseModal();
-      } catch (error) {
-        console.error('Erro ao criar agendamento:', error);
+
+
+  const handleCreateEvent = async (data: NewEventData) => {
+
+      const newId = String(Date.now());
+
+      const categoria = CATEGORIAS_CONSULTA.find((c) => c.title === data.category);
+
+      const novoEvento: EventInput = {
+
+        id: newId,
+
+        title: data.title,
+
+        start: data.start,
+
+        end: data.end,
+
+        color: data.color,
+
+     extendedProps: {
+
+        patientName: data.patientName,
+
+        profissionalName: data.profissionalName,
+
+        category: data.category,
+
+        categoriaId: categoria ? categoria.id : 'outros',
+
+        status: data.status,
+
+        modalidadeReal: data.modalidadeReal,
+
+        anotacoes: data.anotacoes,
+
       }
-  };
 
-  const handleUpdateEvent = async (data: ModalFormData) => {
+
+
+      };
+
+      setEventos((prev) => [...prev, novoEvento]);
+
+    };
+
+
+
+  const handleUpdateEvent = async (data: NewEventData) => {
+
       if (!eventoSelecionado || !eventoSelecionado.id) return;
-      
-      try {
-        const eventoAtualizado = await AgendamentoService.update(eventoSelecionado.id, data);
-        
-        setEventos((prev) =>
-          prev.map((evento) =>
-            evento.id === eventoSelecionado.id ? eventoAtualizado : evento
-          )
-        );
-        handleCloseModal();
-      } catch (error) {
-        console.error('Erro ao atualizar agendamento:', error);
-      }
-  };  
+
+      setEventos((prev) =>
+
+        prev.map((evento) =>
+
+          evento.id === eventoSelecionado.id
+
+            ? {
+
+                ...evento,
+
+                title: data.title,
+
+                start: data.start,
+
+                end: data.end,
+
+                color: data.color,
+
+                extendedProps: {
+
+                  ...evento.extendedProps, // Mantém props antigas se houver
+
+                  patientName: data.patientName,
+
+                  category: data.category,
+
+                  categoriaId: CATEGORIAS_CONSULTA.find((c) => c.title === data.category)?.id ?? 'outros',
+
+                  // Atualiza os novos campos
+
+                  status: data.status,
+
+                  modalidadeReal: data.modalidadeReal,
+
+                  anotacoes: data.anotacoes,
+
+                }
+
+              }
+
+            : evento
+
+        )
+
+      );
+
+    };  
+
+
 
   const handleDeleteEvent = async (eventId: string) => {
-    try {
-      await AgendamentoService.delete(eventId); 
-      
-      setEventos((prev) => prev.filter((evento) => evento.id !== eventId));
-      handleCloseModal();
-    } catch (error) {
-      console.error('Erro ao deletar agendamento:', error);
-    }
+
+    setEventos((prev) => prev.filter((evento) => evento.id !== eventId));
+
   };
 
-  const handleEventDropOrResize = async (changeInfo: EventDropArg | EventResizeDoneArg) => {
-    const localUpdate = eventos.map((evento) =>
-      evento.id === changeInfo.event.id
-        ? {
-            ...evento,
-            start: changeInfo.event.startStr,
-            end: changeInfo.event.endStr,
-          }
-        : evento
-    );
-    setEventos(localUpdate);
-  
-    try {
-      const originalEvent = eventos.find(e => e.id === changeInfo.event.id);
-      
-      if (originalEvent && originalEvent.extendedProps) {
-        const dataToUpdate: ModalFormData = {
-          ...(originalEvent.extendedProps as ModalFormData),
-          start: changeInfo.event.start as Date,
-          end: changeInfo.event.end as Date,
-        };
-        
-        const eventoAtualizado = await AgendamentoService.update(originalEvent.id!, dataToUpdate);
-        
 
-        setEventos((prev) =>
-          prev.map((evento) =>
-            evento.id === changeInfo.event.id ? eventoAtualizado : evento
+
+  const handleEventDropOrResize = (changeInfo: EventDropArg | EventResizeDoneArg) => {
+
+    setEventos((prev) =>
+
+      prev.map((evento) =>
+
+            evento.id === changeInfo.event.id
+
+              ? {
+
+                  ...evento,
+
+                  start: changeInfo.event.startStr,
+
+                  end: changeInfo.event.endStr,
+
+                  color: changeInfo.event.backgroundColor || evento.color
+
+                }
+
+              : evento
+
           )
+
         );
-      }
 
-    } catch (error) {
-      console.error('Erro ao mover/redimensionar agendamento:', error);
+      };
 
-    }
-  };
 
 
   const handleCloseModal = () => {
+
     setIsModalOpen(false);
+
     setSelectedSlot(undefined);
+
     setEventoSelecionado(undefined);
+
   };
+
+
 
   const handleMainCalNavigate = (dateInfo: DatesSetArg) => {
+
     setCurrentDate(dateInfo.start);
+
   };
+
+
 
   const handleMiniCalDateChange = (newDate: Date) => {
+
     setCurrentDate(newDate);
+
     calendarRef.current?.getApi().changeView('timeGridDay', newDate);
+
   };
 
+
+
   if (isLoading) {
+
     return (
+
       <div className="flex h-screen items-center justify-center">
+
         Carregando agendamentos...
+
       </div>
+
     );
+
   }
 
+
+
 return (
+
     <div className="flex h-screen bg-gray-100">
 
+
+
       <SidebarCalendar
+
         filtrosAtivos={filtrosAtivos}
+
         onChangeFiltros={setFiltrosAtivos}
+
         currentDate={currentDate}
+
         onDateChange={handleMiniCalDateChange}
+
       />
+
+
 
       <div className="flex-1 p-4">
+
         <CalendarComponent
+
           ref={calendarRef}
+
           eventos={eventosFiltrados}
+
           onSelectSlot={handleSelectSlot}
-          onEventDrop={handleEventDropOrResize as (changeInfo: EventDropArg) => void}
-          onEventResize={handleEventDropOrResize as (changeInfo: EventResizeDoneArg) => void} 
+
+          onEventDrop={handleEventDropOrResize}
+
+          onEventResize={handleEventDropOrResize}
+
           onSelectEvent={handleEventClick}
+
           currentDate={currentDate}
+
           onNavigate={handleMainCalNavigate}
+
         />
+
       </div>
 
+
+
       <EventModal
+
         isOpen={isModalOpen}
+
         onClose={handleCloseModal}
+
         slotInfo={selectedSlot}
+
         eventoParaEditar={eventoSelecionado}
+
         onCreateEvent={handleCreateEvent}
+
         onUpdateEvent={handleUpdateEvent}
+
         onDeleteEvent={handleDeleteEvent}
+
       />
+
     </div>
+
   );
+
 }
+
