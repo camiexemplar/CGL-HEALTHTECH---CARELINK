@@ -1,187 +1,54 @@
-import { type FormData as ModalFormData } from "../pageCalendar/EventModal";
-
 import { API_BASE_URL } from "../ApiService";
-
-import { type EventInput } from "@fullcalendar/core";
-
-import { type AgendamentoApiDto } from "../../types/Calendario";
-
-
+import { type ProcessedData, type AgendamentoApiDto } from "../../types/Calendario";
 
 const ENDPOINT = `${API_BASE_URL}/agendamentos`;
 
+/** Converte data + hora em formato ISO (padrão que o Quarkus entende) */
+function parseDateTime(dateStr?: string, timeStr?: string): string | null {
+  if (!dateStr) return null;
+  if (dateStr.includes("T")) {
+    const d = new Date(dateStr);
+    if (!isNaN(d.getTime())) return d.toISOString();
+  }
+  try {
+    const dateOnly = dateStr.trim();
+    const timeOnly = timeStr?.trim() ?? "00:00";
+    const combined = `${dateOnly}T${timeOnly}:00`;
+    const d = new Date(combined);
+    if (isNaN(d.getTime())) return null;
+    return d.toISOString();
+  } catch {
+    return null;
+  }
+}
 
-
-/*** Converte o objeto do modal (com objetos Date) para o DTO Quarkus*/
-
-
-
-const formatToApi = (data: ModalFormData, id?: string): AgendamentoApiDto => ({
-
-    id: id,
-
-    title: data.title,
-
-    patientName: data.patientName,
-
-    profissionalName: data.profissionalName,
-
-    category: data.category,
-
-    status: data.status,
-
-    modalidadeReal: data.modalidadeReal,
-
-    anotacoes: data.anotacoes,
-
-    color: data.color,
-
-    start: data.start.toISOString(), // ✅ String
-
-    end: data.end.toISOString(),     // ✅ String
-
-});
-
-
-
-/*** Converte o DTO retornado pelo Quarkus para o formato EventInput do FullCalendar*/
-
-
-
-const formatToFrontend = (apiData: AgendamentoApiDto): EventInput => ({
-
-    id: String(apiData.id),
-
-    title: apiData.title,
-
-    start: apiData.start,
-
-    end: apiData.end,
-
-    color: apiData.color,
-
-    extendedProps: apiData
-
-});
-
-
-
-
+/** Converte um objeto ProcessedData (vindo do backend) para AgendamentoApiDto (formato usado no calendário) */
+function mapProcessedToDto(p: ProcessedData, idx: number): AgendamentoApiDto {
+  const startIso = parseDateTime(p["Data agenda"], p["Hora Agenda"]);
+  let endIso: string | null = null;
+  if (startIso) {
+    const s = new Date(startIso);
+    const e = new Date(s.getTime() + 60 * 60 * 1000);
+    endIso = e.toISOString();
+  }
+  const title = `${p["Nome paciente"] ?? "Paciente"} - ${p["Especialidade"] ?? ""}`;
+  return {
+    id: p["Código da consulta"] ?? `api-${idx}-${Date.now()}`,
+    title,
+    start: startIso ?? new Date().toISOString(),
+    end: endIso ?? new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+    extended: p,
+  };
+}
 
 export const AgendamentoService = {
-
-   
-
-    // GET
-
-    async fetchAll(): Promise<EventInput[]> {
-
-        const response = await fetch(ENDPOINT);
-
-       
-
-        if (!response.ok) {
-
-            throw new Error(`Falha ao buscar agendamentos. Status: ${response.status}`);
-
-        }
-
-                const data: AgendamentoApiDto[] = await response.json();
-
-       
-
-        return data.map(formatToFrontend);
-
-    },
-
-
-
-    // POST
-
-    async create(data: ModalFormData): Promise<EventInput> {
-
-        const dadosApi = formatToApi(data);
-
-       
-
-        const response = await fetch(ENDPOINT, {
-
-            method: 'POST',
-
-            headers: { 'Content-Type': 'application/json' },
-
-            body: JSON.stringify(dadosApi),
-
-        });
-
-
-
-        if (!response.ok) {
-
-            throw new Error(`Falha ao criar agendamento. Status: ${response.status}`);
-
-        }
-
-
-
-        // retorno é um AgendamentoApiDto
-
-        const eventoCriado: AgendamentoApiDto = await response.json();
-
-        return formatToFrontend(eventoCriado);
-
-    },
-
-
-
-    // PUT
-
-    async update(id: string, data: ModalFormData): Promise<EventInput> {
-
-        const dadosApi = formatToApi(data, id);
-
-       
-
-        const response = await fetch(`${ENDPOINT}/${id}`, {
-
-            method: 'PUT',
-
-            headers: { 'Content-Type': 'application/json' },
-
-            body: JSON.stringify(dadosApi),
-
-        });
-
-
-
-        if (!response.ok) {
-
-            throw new Error(`Falha ao atualizar agendamento. Status: ${response.status}`);
-
-        }
-
-       
-
-        const eventoAtualizado: AgendamentoApiDto = await response.json();
-
-        return formatToFrontend(eventoAtualizado);
-
-    },
-
-
-
-    // DELETE
-
-    async delete(id: string): Promise<void> {
-
-        const response = await fetch(`${ENDPOINT}/${id}`, { method: 'DELETE' });
-
-        if (response.status !== 204 && response.status >= 400) {
-
-             throw new Error(`Falha ao deletar agendamento. Status: ${response.status}`);
-
-        }
-
+  /** Busca todos os agendamentos do backend e converte para o formato do FullCalendar */
+  async fetchAll(): Promise<AgendamentoApiDto[]> {
+    const res = await fetch(ENDPOINT);
+    if (!res.ok) {
+      throw new Error(`Falha ao buscar agendamentos. Status: ${res.status}`);
     }
-
+    const raw: ProcessedData[] = await res.json();
+    return raw.map((p, i) => mapProcessedToDto(p, i));
+  },
 };
