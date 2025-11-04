@@ -1,7 +1,13 @@
 import { API_BASE_URL } from "../ApiService";
+export { type AgendamentoApiDto } from "../../types/Calendario";
 import { type ProcessedData, type AgendamentoApiDto } from "../../types/Calendario";
 
+
+// aqui a mágica acontece, temos a nossa APi quarkus \/ (apiService)
+
 const ENDPOINT = `${API_BASE_URL}/agendamentos`;
+
+// aqui a conversão dos formatos de hora que o quarkus nos dá
 
 /** Converte data + hora em formato ISO (padrão que o Quarkus entende) */
 function parseDateTime(dateStr?: string, timeStr?: string): string | null {
@@ -22,7 +28,9 @@ function parseDateTime(dateStr?: string, timeStr?: string): string | null {
   }
 }
 
-/** Converte um objeto ProcessedData (vindo do backend) para AgendamentoApiDto (formato usado no calendário) */
+// aqui convertemos a data vinda do backend (o mesmo conteudo do ProcessedData)
+
+/** Converte um objeto ProcessedData (vindo do backend) para AgendamentoApiDto (formato que o calendário entende) */
 function mapProcessedToDto(p: ProcessedData, idx: number): AgendamentoApiDto {
   const startIso = parseDateTime(p["Data agenda"], p["Hora Agenda"]);
   let endIso: string | null = null;
@@ -40,6 +48,9 @@ function mapProcessedToDto(p: ProcessedData, idx: number): AgendamentoApiDto {
     extended: p,
   };
 }
+
+// aqui temos a busca de agendamentos do backend
+
 
 export const AgendamentoService = {
   /** Busca todos os agendamentos do backend e converte para o formato do FullCalendar */

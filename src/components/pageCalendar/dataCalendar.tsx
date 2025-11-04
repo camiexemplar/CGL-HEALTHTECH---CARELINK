@@ -1,5 +1,7 @@
 import { type EventInput } from "@fullcalendar/core";
 
+// aqui é possivel adicionar categorias para os filtros na lateral do calendário
+
 export const CATEGORIAS_CONSULTA = [
   { id: "fisio", title: "Fisioterapia", color: "#10b981" },
   { id: "terapia", title: "Terapia Ocupacional", color: "#3b82f6" },

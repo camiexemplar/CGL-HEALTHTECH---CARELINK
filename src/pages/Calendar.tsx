@@ -9,8 +9,10 @@ import FullCalendar from "@fullcalendar/react";
 import CalendarComponent from "../components/pageCalendar/CalendarComponent";
 import SidebarCalendar from "../components/pageCalendar/SidebarCalendar";
 import { CATEGORIAS_CONSULTA } from "../components/pageCalendar/dataCalendar";
-import { AgendamentoService } from "../components/pageCalendar/AgendamentoService";
-import { type AgendamentoApiDto } from "../types/Calendario";
+import {
+  AgendamentoService,
+  type AgendamentoApiDto,
+} from "../components/pageCalendar/AgendamentoService";
 
 export default function Calendar() {
   const [eventos, setEventos] = useState<EventInput[]>([]);
@@ -19,43 +21,40 @@ export default function Calendar() {
     CATEGORIAS_CONSULTA.map((c) => c.id)
   );
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
+  const [selectedEvent, setSelectedEvent] = useState<EventInput | null>(null);
   const calendarRef = useRef<FullCalendar>(null);
 
   /** Converte o DTO da API para o formato aceito pelo FullCalendar */
   function dtoToEventInput(dto: AgendamentoApiDto): EventInput {
-    const especialidade = dto.extended?.["Especialidade"] as string | undefined;
-    const colorFromCategory = CATEGORIAS_CONSULTA.find(
-      (c) =>
-        c.title.toLowerCase() === (especialidade ?? "").toLowerCase()
-    )?.color;
+  const especialidade = dto.extended?.["Especialidade"] ?? dto.especialidade ?? "";
+  const categoria = CATEGORIAS_CONSULTA.find(
+    (c) =>
+      c.title.toLowerCase() === especialidade.toLowerCase() ||
+      c.id.toLowerCase() === especialidade.toLowerCase()
+  );
 
-    const color =
-      colorFromCategory ??
-      CATEGORIAS_CONSULTA[
-        Math.floor(Math.random() * CATEGORIAS_CONSULTA.length)
-      ].color;
+  return {
+    id: String(dto.id),
+    title: dto.title,
+    start: dto.start,
+    end: dto.end,
+    color: categoria?.color ?? "#6b7280",
+    extendedProps: {
+      ...dto.extended,
+      categoriaId: categoria?.id ?? "outros", // 🔥 usado no filtro
+      codigoConsulta: dto.id,
+    },
+  };
+}
 
-    return {
-      id: String(dto.id),
-      title: dto.title,
-      start: dto.start,
-      end: dto.end,
-      color,
-      extendedProps: {
-        ...dto.extended,
-        codigoConsulta: dto.id,
-      },
-    };
-  }
+  /** Aplica os filtros de categoria */
+const eventosFiltrados = useMemo(() => {
+  return eventos.filter((evento) => {
+    const categoriaId = evento.extendedProps?.categoriaId as string | undefined;
+    return !categoriaId || filtrosAtivos.includes(categoriaId);
+  });
+}, [eventos, filtrosAtivos]);
 
-  /**  filtros de categoria */
-  const eventosFiltrados = useMemo(() => {
-    return eventos.filter((evento) =>
-      evento.extendedProps?.categoriaId
-        ? filtrosAtivos.includes(evento.extendedProps.categoriaId)
-        : true
-    );
-  }, [eventos, filtrosAtivos]);
 
   /** Busca os agendamentos conforme o intervalo visível do calendário */
   const handleMainCalNavigate = async (dateInfo: DatesSetArg) => {
@@ -83,16 +82,27 @@ export default function Calendar() {
     }
   };
 
-  /** Navegação  mini calendário */
+  /** Navegação pelo mini calendário lateral */
   const handleMiniCalDateChange = (newDate: Date) => {
     setCurrentDate(newDate);
     calendarRef.current?.getApi().changeView("timeGridDay", newDate);
   };
 
-  /** modal para mostrar detalhes (a fazer) */
+  /** Clique em um evento (abre modal) */
   const handleEventClick = (clickInfo: EventClickArg) => {
-    console.log("Evento clicado:", clickInfo.event);
+    const event = clickInfo.event;
+    setSelectedEvent({
+      id: event.id,
+      title: event.title,
+      start: event.start?.toISOString() ?? "",
+      end: event.end?.toISOString() ?? "",
+      color: event.backgroundColor,
+      extendedProps: event.extendedProps,
+    });
   };
+
+  /** Fechar modal */
+  const closeModal = () => setSelectedEvent(null);
 
   return (
     <div className="flex h-screen bg-gray-100">
@@ -104,6 +114,7 @@ export default function Calendar() {
         onDateChange={handleMiniCalDateChange}
       />
 
+      {/* Área principal */}
       <div className="flex-1 p-4 relative">
         {isLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-70 z-10">
@@ -121,6 +132,127 @@ export default function Calendar() {
           onNavigate={handleMainCalNavigate}
         />
       </div>
+
+    {/* Modal de Detalhes da Consulta */}
+{selectedEvent && (
+  <div
+    onClick={closeModal}
+    className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/20"
+  >
+    <div
+      onClick={(e) => e.stopPropagation()}
+      className="relative bg-white/90 rounded-3xl shadow-2xl w-full max-w-3xl p-10 border border-gray-200 backdrop-blur-md"
+    >
+      {/* Faixa colorida lateral */}
+      <div
+        className="absolute top-0 left-0 h-full w-3 rounded-l-3xl"
+        style={{ backgroundColor: selectedEvent.color }}
+      />
+
+      {/* Botão de fechar */}
+      <button
+        onClick={closeModal}
+        className="absolute top-4 right-6 text-gray-500 hover:text-gray-800 text-2xl font-bold"
+      >
+        ×
+      </button>
+
+      {/* Cabeçalho */}
+      <h2 className="text-3xl font-semibold text-gray-800 mb-6 border-b pb-3">
+        {selectedEvent.extendedProps?.["Nome paciente"] ??
+          selectedEvent.title ??
+          "Detalhes da Consulta"}
+      </h2>
+
+      {/* Corpo em 2 colunas */}
+      <div className="grid grid-cols-2 gap-6 text-gray-700">
+        <div>
+          <p className="mb-2">
+            <span className="font-medium text-gray-900">Data:</span><br />
+            {new Date(selectedEvent.start ?? "").toLocaleDateString("pt-BR")}
+          </p>
+
+          <p className="mb-2">
+            <span className="font-medium text-gray-900">Horário:</span><br />
+            {new Date(selectedEvent.start ?? "").toLocaleTimeString("pt-BR", {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </p>
+
+          <p className="mb-2">
+            <span className="font-medium text-gray-900">Médico(a):</span><br />
+            {selectedEvent.extendedProps?.["Nome medico"] ?? "—"}
+          </p>
+
+          <p className="mb-2">
+            <span className="font-medium text-gray-900">Especialidade:</span><br />
+            {selectedEvent.extendedProps?.["Especialidade"] ?? "—"}
+          </p>
+        </div>
+
+        <div>
+          <p className="mb-2">
+            <span className="font-medium text-gray-900">Código da Consulta:</span><br />
+            {selectedEvent.extendedProps?.["Código da consulta"] ?? "—"}
+          </p>
+
+          <p className="mb-2">
+            <span className="font-medium text-gray-900">Nome do Acompanhante:</span><br />
+            {selectedEvent.extendedProps?.["Nome acompanhante"] || "—"}
+          </p>
+
+          <p className="mb-2">
+            <span className="font-medium text-gray-900">Celular Paciente:</span><br />
+            {selectedEvent.extendedProps?.["Número celular"] || "—"}
+          </p>
+
+          <p className="mb-2">
+            <span className="font-medium text-gray-900">Celular Acompanhante:</span><br />
+            {selectedEvent.extendedProps?.["Número acompanhante"] || "—"}
+          </p>
+        </div>
+      </div>
+
+      {/* Link e anotações */}
+      <div className="mt-8">
+        {selectedEvent.extendedProps?.["Link da consulta"] && (
+          <p className="mb-3">
+            <span className="font-medium text-gray-900">Link da Consulta:</span><br />
+            <a
+              href={selectedEvent.extendedProps["Link da consulta"]}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:underline break-words"
+            >
+              {selectedEvent.extendedProps["Link da consulta"]}
+            </a>
+          </p>
+        )}
+
+        {selectedEvent.extendedProps?.["anotações"] && (
+          <p className="mt-4">
+            <span className="font-medium text-gray-900">Anotações:</span><br />
+            <span className="whitespace-pre-line">
+              {selectedEvent.extendedProps["anotações"]}
+            </span>
+          </p>
+        )}
+      </div>
+
+      {/* Rodapé */}
+      <div className="mt-10 flex justify-end">
+        <button
+          onClick={closeModal}
+          className="px-6 py-2 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition"
+        >
+          Fechar
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
     </div>
   );
 }

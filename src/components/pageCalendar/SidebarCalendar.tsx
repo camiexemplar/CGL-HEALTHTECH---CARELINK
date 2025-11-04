@@ -9,7 +9,8 @@ interface Props {
   currentDate: Date;
   onDateChange: (newDate: Date) => void;
 }
-// filtros
+// filtros do calendário (que vem do dateCalendar)
+
 export default function SidebarCalendar({
   filtrosAtivos,
   onChangeFiltros,
@@ -30,7 +31,8 @@ export default function SidebarCalendar({
     }
   };
 
- //estiliza 
+ //estilização das datas
+ 
   const tileClassName = ({ date, view }: { date: Date; view: string }) => {
     if (view === 'month') {
       const sameDay =

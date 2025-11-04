@@ -10,6 +10,9 @@ import {
   type DatesSetArg,
 } from "@fullcalendar/core";
 
+// aqui basicamente temos o calendário do fullcalendar  com sua visualização
+
+
 interface Props {
   eventos: EventInput[];
   onSelectEvent?: (clickInfo: EventClickArg) => void;
