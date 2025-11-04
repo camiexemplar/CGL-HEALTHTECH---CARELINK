@@ -1,11 +1,16 @@
 import { useState, useMemo, useRef } from "react";
-import { type EventInput, type EventClickArg, type DatesSetArg } from "@fullcalendar/core";
+import {
+  type EventInput,
+  type EventClickArg,
+  type DatesSetArg,
+} from "@fullcalendar/core";
 import FullCalendar from "@fullcalendar/react";
 
 import CalendarComponent from "../components/pageCalendar/CalendarComponent";
 import SidebarCalendar from "../components/pageCalendar/SidebarCalendar";
 import { CATEGORIAS_CONSULTA } from "../components/pageCalendar/dataCalendar";
 import { AgendamentoService } from "../components/pageCalendar/AgendamentoService";
+import { type AgendamentoApiDto } from "../types/Calendario";
 
 export default function Calendar() {
   const [eventos, setEventos] = useState<EventInput[]>([]);
@@ -16,14 +21,20 @@ export default function Calendar() {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const calendarRef = useRef<FullCalendar>(null);
 
-  function dtoToEventInput(dto: any): EventInput {
+  /** Converte o DTO da API para o formato aceito pelo FullCalendar */
+  function dtoToEventInput(dto: AgendamentoApiDto): EventInput {
     const especialidade = dto.extended?.["Especialidade"] as string | undefined;
     const colorFromCategory = CATEGORIAS_CONSULTA.find(
-      (c) => c.title.toLowerCase() === (especialidade ?? "").toLowerCase()
+      (c) =>
+        c.title.toLowerCase() === (especialidade ?? "").toLowerCase()
     )?.color;
+
     const color =
       colorFromCategory ??
-      CATEGORIAS_CONSULTA[Math.floor(Math.random() * CATEGORIAS_CONSULTA.length)].color;
+      CATEGORIAS_CONSULTA[
+        Math.floor(Math.random() * CATEGORIAS_CONSULTA.length)
+      ].color;
+
     return {
       id: String(dto.id),
       title: dto.title,
@@ -37,6 +48,7 @@ export default function Calendar() {
     };
   }
 
+  /**  filtros de categoria */
   const eventosFiltrados = useMemo(() => {
     return eventos.filter((evento) =>
       evento.extendedProps?.categoriaId
@@ -45,6 +57,7 @@ export default function Calendar() {
     );
   }, [eventos, filtrosAtivos]);
 
+  /** Busca os agendamentos conforme o intervalo visível do calendário */
   const handleMainCalNavigate = async (dateInfo: DatesSetArg) => {
     setCurrentDate(dateInfo.start);
     setIsLoading(true);
@@ -70,17 +83,20 @@ export default function Calendar() {
     }
   };
 
+  /** Navegação  mini calendário */
   const handleMiniCalDateChange = (newDate: Date) => {
     setCurrentDate(newDate);
     calendarRef.current?.getApi().changeView("timeGridDay", newDate);
   };
 
+  /** modal para mostrar detalhes (a fazer) */
   const handleEventClick = (clickInfo: EventClickArg) => {
     console.log("Evento clicado:", clickInfo.event);
   };
 
   return (
     <div className="flex h-screen bg-gray-100">
+      {/* Sidebar com filtros e mini calendário */}
       <SidebarCalendar
         filtrosAtivos={filtrosAtivos}
         onChangeFiltros={setFiltrosAtivos}
@@ -88,7 +104,15 @@ export default function Calendar() {
         onDateChange={handleMiniCalDateChange}
       />
 
-      <div className="flex-1 p-4">
+      <div className="flex-1 p-4 relative">
+        {isLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-70 z-10">
+            <span className="text-gray-600 text-lg font-medium">
+              Carregando agendamentos...
+            </span>
+          </div>
+        )}
+
         <CalendarComponent
           ref={calendarRef}
           eventos={eventosFiltrados}
