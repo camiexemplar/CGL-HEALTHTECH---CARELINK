@@ -3,6 +3,7 @@ export interface DadosPaciente {
     idPaciente: string;
     nomePaciente: string;
     telefonePaciente: string;
+    bairroPaciente: string;
     cuidador: Cuidador | null; 
     scoreDeRisco: number | null; 
     nivelDeRisco: "ALTO" | "MEDIO" | "BAIXO" | null; 
