@@ -6,7 +6,7 @@ export interface AlertaItem {
     especialidadeConsulta: string;
     horaConsulta: string;
     scoreDeRisco: number;
-    nivelDeRisco: "ALTO" | "MEDIO" | "BAIXO" | null;
+    nivelDeRisco: "CRITICO" | "ALTO" | "MEDIO" | "BAIXO" | null;
     fatoresDeRisco: string[] | null;
     idConsulta: string;
     statusAlerta: 'NOVO' | 'EM_TRATAMENTO' | 'RESOLVIDO';

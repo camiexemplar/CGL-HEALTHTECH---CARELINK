@@ -18,7 +18,7 @@ export function InformacoesDashboard({
     ) ?? [];
 
   const pacientesAltoRisco =
-    alertaItem?.filter((item) => item.nivelDeRisco === "ALTO").length ?? 0;
+    alertaItem?.filter((item) => item.nivelDeRisco === "ALTO" || item.nivelDeRisco === "CRITICO").length ?? 0;
 
   return (
     <div className="space-y-6">
@@ -29,9 +29,13 @@ export function InformacoesDashboard({
         Consultas Agendadas para hoje ({data.toLocaleDateString()})
       </h2>
 
-      <div className="flex justify-between items-center bg-red-600 text-white p-4 rounded-lg shadow-md">
+      <div
+        className={`flex justify-between items-center text-white p-4 rounded-lg shadow-md ${
+          pacientesAltoRisco > 0 ? 'bg-red-600' : 'bg-green-600'
+        }`}>
         <h2 className="text-xl font-semibold">Priorização de Atendimento</h2>
-        {pacientesAltoRisco > 0 && pacientesAltoRisco == 1 ? (
+
+        {pacientesAltoRisco > 0 && pacientesAltoRisco === 1 ? (
           <h2 className="text-2xl font-extrabold">
             {pacientesAltoRisco} paciente em ALTO RISCO
           </h2>
