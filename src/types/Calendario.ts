@@ -8,7 +8,7 @@ export interface ProcessedData {
   "telefoneCuidador": string;
   "nomeProfissional": string;
   "especialidadeProfissional": string;
-  "linkConsulta": string;
+  "statusConsulta": string;
   "codigoConsulta": number;
   "anotacoes": string;
 }

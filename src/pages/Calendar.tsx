@@ -235,8 +235,19 @@ export default function Calendar() {
               </div>
             </div>
 
-            {/* Link e anotações */}
+        
+            {/* Status, Link e anotações */}
             <div className="mt-8">
+              {selectedEvent.extendedProps?.["statusConsulta"] && (
+                <p className="mb-3">
+                  <span className="font-medium text-gray-900">Status da Consulta:</span>
+                  <br />
+                  <span className="whitespace-pre-line">
+                    {selectedEvent.extendedProps["statusConsulta"]}
+                  </span>
+                </p>
+              )}
+
               {selectedEvent.extendedProps?.["linkConsulta"] && (
                 <p className="mb-3">
                   <span className="font-medium text-gray-900">

@@ -47,28 +47,6 @@ export default function SidebarCalendar({
   return (
     <aside className="w-64 p-4 space-y-6 bg-gray-50 border-r border-gray-200">
       <div>
-        <h2 className="text-lg font-semibold text-gray-800">Filtros de Consulta</h2>
-        <div className="flex flex-col space-y-3 mt-4">
-          {CATEGORIAS_CONSULTA.map((categoria) => (
-            <label
-              key={categoria.id}
-              className="flex items-center space-x-3 cursor-pointer"
-            >
-              <input
-                type="checkbox"
-                value={categoria.id}
-                checked={filtrosAtivos.includes(categoria.id)}
-                onChange={handleCheckboxChange}
-                className="h-5 w-5 rounded border-gray-300"
-                style={{ accentColor: categoria.color }}
-              />
-              <span className="text-gray-700">{categoria.title}</span>
-            </label>
-          ))}
-        </div>
-      </div>
-
-      <div className="border-t pt-6">
         <Calendar
           onChange={handleMiniCalChange}
           value={currentDate}
@@ -76,6 +54,29 @@ export default function SidebarCalendar({
           tileClassName={tileClassName}
           className="border-none"
         />
+        
+        <div className="border-t pt-6">
+          <h2 className="text-lg font-semibold text-gray-800">Filtros de Consulta</h2>
+          <div className="flex flex-col space-y-3 mt-4">
+            {CATEGORIAS_CONSULTA.map((categoria) => (
+              <label
+                key={categoria.id}
+                className="flex items-center space-x-3 cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  value={categoria.id}
+                  checked={filtrosAtivos.includes(categoria.id)}
+                  onChange={handleCheckboxChange}
+                  className="h-5 w-5 rounded border-gray-300"
+                  style={{ accentColor: categoria.color }}
+                />
+                <span className="text-gray-700">{categoria.title}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+        
       </div>
     </aside>
   );
