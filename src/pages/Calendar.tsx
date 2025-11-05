@@ -26,35 +26,39 @@ export default function Calendar() {
 
   /** Converte o DTO da API para o formato aceito pelo FullCalendar */
   function dtoToEventInput(dto: AgendamentoApiDto): EventInput {
-  const especialidade = dto.extended?.["Especialidade"] ?? dto.especialidade ?? "";
-  const categoria = CATEGORIAS_CONSULTA.find(
-    (c) =>
-      c.title.toLowerCase() === especialidade.toLowerCase() ||
-      c.id.toLowerCase() === especialidade.toLowerCase()
-  );
+    const especialidade =
+      dto.extended?.["especialidadeProfissional"] ??
+      dto.especialidadeProfissional ??
+      "";
+    const categoria = CATEGORIAS_CONSULTA.find(
+      (c) =>
+        c.title.toLowerCase() === especialidade.toLowerCase() ||
+        c.id.toLowerCase() === especialidade.toLowerCase()
+    );
 
-  return {
-    id: String(dto.id),
-    title: dto.title,
-    start: dto.start,
-    end: dto.end,
-    color: categoria?.color ?? "#6b7280",
-    extendedProps: {
-      ...dto.extended,
-      categoriaId: categoria?.id ?? "outros", // 🔥 usado no filtro
-      codigoConsulta: dto.id,
-    },
-  };
-}
+    return {
+      id: String(dto.id),
+      title: dto.title,
+      start: dto.start,
+      end: dto.end,
+      color: categoria?.color ?? "#6b7280",
+      extendedProps: {
+        ...dto.extended,
+        categoriaId: categoria?.id ?? "outros", // 🔥 usado no filtro
+        codigoConsulta: dto.id,
+      },
+    };
+  }
 
   /** Aplica os filtros de categoria */
-const eventosFiltrados = useMemo(() => {
-  return eventos.filter((evento) => {
-    const categoriaId = evento.extendedProps?.categoriaId as string | undefined;
-    return !categoriaId || filtrosAtivos.includes(categoriaId);
-  });
-}, [eventos, filtrosAtivos]);
-
+  const eventosFiltrados = useMemo(() => {
+    return eventos.filter((evento) => {
+      const categoriaId = evento.extendedProps?.categoriaId as
+        | string
+        | undefined;
+      return !categoriaId || filtrosAtivos.includes(categoriaId);
+    });
+  }, [eventos, filtrosAtivos]);
 
   /** Busca os agendamentos conforme o intervalo visível do calendário */
   const handleMainCalNavigate = async (dateInfo: DatesSetArg) => {
@@ -63,16 +67,9 @@ const eventosFiltrados = useMemo(() => {
     setEventos([]);
 
     try {
-      const dtos = await AgendamentoService.fetchAll();
-      const visibleStart = new Date(dateInfo.start);
-      const visibleEnd = new Date(dateInfo.end);
-
-      const eventsInRange = dtos
-        .filter((d) => {
-          const start = new Date(d.start);
-          return start >= visibleStart && start < visibleEnd;
-        })
-        .map(dtoToEventInput);
+      const eventsInRange = (
+        await AgendamentoService.fetchByPeriod(dateInfo.start, dateInfo.end)
+      ).map(dtoToEventInput);
 
       setEventos(eventsInRange);
     } catch (err) {
@@ -133,126 +130,153 @@ const eventosFiltrados = useMemo(() => {
         />
       </div>
 
-    {/* Modal de Detalhes da Consulta */}
-{selectedEvent && (
-  <div
-    onClick={closeModal}
-    className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/20"
-  >
-    <div
-      onClick={(e) => e.stopPropagation()}
-      className="relative bg-white/90 rounded-3xl shadow-2xl w-full max-w-3xl p-10 border border-gray-200 backdrop-blur-md"
-    >
-      {/* Faixa colorida lateral */}
-      <div
-        className="absolute top-0 left-0 h-full w-3 rounded-l-3xl"
-        style={{ backgroundColor: selectedEvent.color }}
-      />
-
-      {/* Botão de fechar */}
-      <button
-        onClick={closeModal}
-        className="absolute top-4 right-6 text-gray-500 hover:text-gray-800 text-2xl font-bold"
-      >
-        ×
-      </button>
-
-      {/* Cabeçalho */}
-      <h2 className="text-3xl font-semibold text-gray-800 mb-6 border-b pb-3">
-        {selectedEvent.extendedProps?.["Nome paciente"] ??
-          selectedEvent.title ??
-          "Detalhes da Consulta"}
-      </h2>
-
-      {/* Corpo em 2 colunas */}
-      <div className="grid grid-cols-2 gap-6 text-gray-700">
-        <div>
-          <p className="mb-2">
-            <span className="font-medium text-gray-900">Data:</span><br />
-            {new Date(selectedEvent.start ?? "").toLocaleDateString("pt-BR")}
-          </p>
-
-          <p className="mb-2">
-            <span className="font-medium text-gray-900">Horário:</span><br />
-            {new Date(selectedEvent.start ?? "").toLocaleTimeString("pt-BR", {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </p>
-
-          <p className="mb-2">
-            <span className="font-medium text-gray-900">Médico(a):</span><br />
-            {selectedEvent.extendedProps?.["Nome medico"] ?? "—"}
-          </p>
-
-          <p className="mb-2">
-            <span className="font-medium text-gray-900">Especialidade:</span><br />
-            {selectedEvent.extendedProps?.["Especialidade"] ?? "—"}
-          </p>
-        </div>
-
-        <div>
-          <p className="mb-2">
-            <span className="font-medium text-gray-900">Código da Consulta:</span><br />
-            {selectedEvent.extendedProps?.["Código da consulta"] ?? "—"}
-          </p>
-
-          <p className="mb-2">
-            <span className="font-medium text-gray-900">Nome do Acompanhante:</span><br />
-            {selectedEvent.extendedProps?.["Nome acompanhante"] || "—"}
-          </p>
-
-          <p className="mb-2">
-            <span className="font-medium text-gray-900">Celular Paciente:</span><br />
-            {selectedEvent.extendedProps?.["Número celular"] || "—"}
-          </p>
-
-          <p className="mb-2">
-            <span className="font-medium text-gray-900">Celular Acompanhante:</span><br />
-            {selectedEvent.extendedProps?.["Número acompanhante"] || "—"}
-          </p>
-        </div>
-      </div>
-
-      {/* Link e anotações */}
-      <div className="mt-8">
-        {selectedEvent.extendedProps?.["Link da consulta"] && (
-          <p className="mb-3">
-            <span className="font-medium text-gray-900">Link da Consulta:</span><br />
-            <a
-              href={selectedEvent.extendedProps["Link da consulta"]}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 hover:underline break-words"
-            >
-              {selectedEvent.extendedProps["Link da consulta"]}
-            </a>
-          </p>
-        )}
-
-        {selectedEvent.extendedProps?.["anotações"] && (
-          <p className="mt-4">
-            <span className="font-medium text-gray-900">Anotações:</span><br />
-            <span className="whitespace-pre-line">
-              {selectedEvent.extendedProps["anotações"]}
-            </span>
-          </p>
-        )}
-      </div>
-
-      {/* Rodapé */}
-      <div className="mt-10 flex justify-end">
-        <button
+      {/* Modal de Detalhes da Consulta */}
+      {selectedEvent && (
+        <div
           onClick={closeModal}
-          className="px-6 py-2 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition"
+          className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/20"
         >
-          Fechar
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative bg-white/90 rounded-3xl shadow-2xl w-full max-w-3xl p-10 border border-gray-200 backdrop-blur-md"
+          >
+            {/* Faixa colorida lateral */}
+            <div
+              className="absolute top-0 left-0 h-full w-3 rounded-l-3xl"
+              style={{ backgroundColor: selectedEvent.color }}
+            />
 
+            {/* Botão de fechar */}
+            <button
+              onClick={closeModal}
+              className="absolute top-4 right-6 text-gray-500 hover:text-gray-800 text-2xl font-bold"
+            >
+              ×
+            </button>
+
+            {/* Cabeçalho */}
+            <h2 className="text-3xl font-semibold text-gray-800 mb-6 border-b pb-3">
+              {selectedEvent.extendedProps?.["nomePaciente"] ??
+                selectedEvent.title ??
+                "Detalhes da Consulta"}
+            </h2>
+
+            {/* Corpo em 2 colunas */}
+            <div className="grid grid-cols-2 gap-6 text-gray-700">
+              <div>
+                <p className="mb-2">
+                  <span className="font-medium text-gray-900">Data:</span>
+                  <br />
+                  {new Date(selectedEvent.start ?? "").toLocaleDateString(
+                    "pt-BR"
+                  )}
+                </p>
+
+                <p className="mb-2">
+                  <span className="font-medium text-gray-900">Horário:</span>
+                  <br />
+                  {new Date(selectedEvent.start ?? "").toLocaleTimeString(
+                    "pt-BR",
+                    {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    }
+                  )}
+                </p>
+
+                <p className="mb-2">
+                  <span className="font-medium text-gray-900">Médico(a):</span>
+                  <br />
+                  {selectedEvent.extendedProps?.["nomeProfissional"] ?? "—"}
+                </p>
+
+                <p className="mb-2">
+                  <span className="font-medium text-gray-900">
+                    Especialidade:
+                  </span>
+                  <br />
+                  {selectedEvent.extendedProps?.["especialidadeProfissional"] ??
+                    "—"}
+                </p>
+              </div>
+
+              <div>
+                <p className="mb-2">
+                  <span className="font-medium text-gray-900">
+                    Código da Consulta:
+                  </span>
+                  <br />
+                  {selectedEvent.extendedProps?.["codigoConsulta"] ?? "—"}
+                </p>
+
+                <p className="mb-2">
+                  <span className="font-medium text-gray-900">
+                    Nome do Cuidador:
+                  </span>
+                  <br />
+                  {selectedEvent.extendedProps?.["nomeCuidador"] || "—"}
+                </p>
+
+                <p className="mb-2">
+                  <span className="font-medium text-gray-900">
+                    Telefone Paciente:
+                  </span>
+                  <br />
+                  {selectedEvent.extendedProps?.["telefonePaciente"] || "—"}
+                </p>
+
+                <p className="mb-2">
+                  <span className="font-medium text-gray-900">
+                    Telefone Cuidador:
+                  </span>
+                  <br />
+                  {selectedEvent.extendedProps?.["telefoneCuidador"] || "—"}
+                </p>
+              </div>
+            </div>
+
+            {/* Link e anotações */}
+            <div className="mt-8">
+              {selectedEvent.extendedProps?.["linkConsulta"] && (
+                <p className="mb-3">
+                  <span className="font-medium text-gray-900">
+                    Link da Consulta:
+                  </span>
+                  <br />
+                  <a
+                    href={selectedEvent.extendedProps["linkConsulta"]}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline break-words"
+                  >
+                    {selectedEvent.extendedProps["linkConsulta"]}
+                  </a>
+                </p>
+              )}
+
+              {selectedEvent.extendedProps?.["anotacoes"] && (
+                <p className="mt-4">
+                  <span className="font-medium text-gray-900">Anotações:</span>
+                  <br />
+                  <span className="whitespace-pre-line">
+                    {selectedEvent.extendedProps["anotacoes"]}
+                  </span>
+                </p>
+              )}
+            </div>
+
+            {/* Rodapé */}
+            <div className="mt-10 flex justify-end">
+              <button
+                onClick={closeModal}
+                className="px-6 py-2 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

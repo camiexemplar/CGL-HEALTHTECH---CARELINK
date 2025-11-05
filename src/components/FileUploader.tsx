@@ -45,7 +45,7 @@ export default function FileUploader() {
       const formData = new FormData();
       formData.append("planilha", file);
 
-      const response = await fetch(`${API_BASE_URL}upload/receber`, {
+      const response = await fetch(`${API_BASE_URL}/api/upload/receber`, {
         method: "POST",
         body: formData,
       });

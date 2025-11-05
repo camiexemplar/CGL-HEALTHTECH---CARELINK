@@ -1,17 +1,16 @@
 // src/types/Calendario.ts
 export interface ProcessedData {
-  "Data agenda": string;           // ex: "2025-11-03" ou "2025-11-03T00:00:00"
-  "Hora Agenda": string;           // ex: "08:30"
-  "Nome paciente": string;
-  "Número celular": string;
-  "Data nascimento": string;
-  "Nome acompanhante": string;
-  "Número acompanhante": string;
-  "Nome medico": string;
-  "Especialidade": string;
-  "Link da consulta": string;
-  "Código da consulta": number;
-  "anotações": string;
+  "dataConsulta": string;           // ex: "2025-11-03" ou "2025-11-03T00:00:00"
+  "horaConsulta": string;           // ex: "08:30"
+  "nomePaciente": string;
+  "telefonePaciente": string;
+  "nomeCuidador": string;
+  "telefoneCuidador": string;
+  "nomeProfissional": string;
+  "especialidadeProfissional": string;
+  "linkConsulta": string;
+  "codigoConsulta": number;
+  "anotacoes": string;
 }
 
 // Event DTO que usaremos internamente (opcional)
