@@ -1,7 +1,7 @@
 import { useState, type FormEvent, type ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "./ApiService";
-import { CATEGORIAS_CONSULTA } from "./pageCalendar/dataCalendar";
+import { CATEGORIAS_CONSULTA } from "./pageCalendar/dataCalendar"; // importa as especialidades do calendário
 
 type UploadStatus = "idle" | "uploading" | "success" | "error";
 
@@ -24,7 +24,6 @@ export default function ManualUploading() {
   const navigate = useNavigate();
   const [status, setStatus] = useState<UploadStatus>("idle");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<ProcessedData>({
     "Data agenda": "",
@@ -55,7 +54,6 @@ export default function ManualUploading() {
     e.preventDefault();
     setStatus("uploading");
     setErrorMsg(null);
-    setSuccessMsg(null);
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/upload/manual`, {
@@ -69,7 +67,6 @@ export default function ManualUploading() {
       const newJsonData: ProcessedData[] = await response.json();
       localStorage.setItem("tempPatientData", JSON.stringify(newJsonData));
 
-      // ✅ Atualiza eventos no calendário local
       const existing = JSON.parse(localStorage.getItem("calendarEvents") || "[]");
       const newEvent = {
         title: `${formData["Nome paciente"]} - ${formData["Especialidade"]}`,
@@ -78,16 +75,12 @@ export default function ManualUploading() {
       };
       localStorage.setItem("calendarEvents", JSON.stringify([...existing, newEvent]));
 
-      // ✅ Mostra mensagem de sucesso e volta automaticamente
       setStatus("success");
-      setSuccessMsg("✅ Adicionado com sucesso!");
-      setTimeout(() => {
-        navigate("/importar");
-      }, 2000);
+      navigate("/importar");
     } catch (err) {
       console.error("Erro ao enviar dados manuais:", err);
       setStatus("error");
-      setErrorMsg("❌ Não foi possível enviar os dados. Tente novamente.");
+      setErrorMsg("Não foi possível enviar os dados. Tente novamente.");
     }
   }
 
@@ -97,11 +90,12 @@ export default function ManualUploading() {
         Inserção Manual de Dados
       </h1>
 
-      {/* Barra de progresso */}
       <div className="flex justify-center items-center text-sm sm:text-base text-gray-600 mb-6">
         <span className="font-semibold text-gray-800">1. Realizando o UPLOAD</span>
         <span className="mx-4">|</span>
-        <span>2. Finalizando</span>
+        <span>2. Validando</span>
+        <span className="mx-4">|</span>
+        <span>3. Finalização</span>
       </div>
 
       <form
@@ -118,7 +112,7 @@ export default function ManualUploading() {
           <InputField label="Número acompanhante" name="Número acompanhante" value={formData["Número acompanhante"]} onChange={handleChange} />
           <InputField label="Nome médico" name="Nome medico" value={formData["Nome medico"]} onChange={handleChange} required />
 
-          {/* 🔽 Select de especialidade */}
+          {/* 🔽 Select de especialidade (agora dropdown) */}
           <SelectField
             label="Especialidade"
             name="Especialidade"
@@ -167,12 +161,13 @@ export default function ManualUploading() {
           </button>
         </div>
 
-        {/* Mensagens de feedback */}
         {status === "error" && (
-          <p className="text-red-600 text-center font-semibold mt-2">{errorMsg}</p>
+          <p className="text-red-600 text-center font-semibold mt-2">❌ {errorMsg}</p>
         )}
         {status === "success" && (
-          <p className="text-green-600 text-center font-semibold mt-2">{successMsg}</p>
+          <p className="text-green-600 text-center font-semibold mt-2">
+            ✅ Dados enviados com sucesso!
+          </p>
         )}
       </form>
 
@@ -212,7 +207,7 @@ function InputField({ label, name, value, onChange, type = "text", required = fa
   );
 }
 
-/* 🔹 Campo select */
+/* 🔹 Campo select para especialidade */
 interface SelectFieldProps {
   label: string;
   name: string;

@@ -127,6 +127,15 @@ export default function FileUploader() {
         )}
       </div>
       <div></div>
+        <div className="mt-4 text-sm text-gray-600 text-center">
+    <span>Prefere inserir os dados manualmente?</span>{" "}
+    <a
+      href="/importar/manual"
+      className="text-blue-600 font-medium hover:underline"
+    >
+      Clique aqui
+    </a>
+  </div>
     </div>
   );
 }
