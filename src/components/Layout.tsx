@@ -49,6 +49,7 @@ export default function Layout() {
     { name: "Histórico de pacientes", icon: "", path: "/historico" },
     { name: "Importar Dados", icon: "", path: "/importar" },
     { name: "Relatório de Abseteismo", icon: "", path: "/alertas" },
+    { name: "Calendário", icon: "", path: "/calendario" }
   ];
 
   useEffect(() => {
