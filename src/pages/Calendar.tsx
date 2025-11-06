@@ -160,7 +160,7 @@ export default function Calendar() {
 
       // Aqui você atualizaria o estado 'eventos' com os dados retornados pela API
       setIsEditing(false);
-
+      closeModal();
       alert("Alterações salvas com sucesso!");
     } catch (error) {
       console.error("Erro ao salvar alterações:", error);
@@ -349,7 +349,7 @@ export default function Calendar() {
                     onChange={handleEditChange}
                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
                   >
-                    <option value="AGENDADO">Agendada</option>
+                    <option value="AGENDADA">Agendada</option>
                     <option value="REALIZADA">Realizada</option>
                     <option value="PACIENTE NAO COMPARECEU">Paciente não compareceu</option>
                     <option value="CANCELADA">Cancelada</option>
