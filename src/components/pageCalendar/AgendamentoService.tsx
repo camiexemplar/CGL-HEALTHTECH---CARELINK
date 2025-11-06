@@ -44,7 +44,7 @@ function parseDateTime(dateStr?: string, timeStr?: string): string | null {
 // aqui convertemos a data vinda do backend (o mesmo conteudo do ProcessedData)
 
 /** Converte um objeto ProcessedData (vindo do backend) para AgendamentoApiDto (formato que o calendário entende) */
-function mapProcessedToDto(p: ProcessedData, idx: number): AgendamentoApiDto {
+function mapProcessedToDto(p: ProcessedData,): AgendamentoApiDto {
   const startIso = parseDateTime(p["dataConsulta"], p["horaConsulta"]);
   let endIso: string | null = null;
   if (startIso) {
@@ -52,11 +52,8 @@ function mapProcessedToDto(p: ProcessedData, idx: number): AgendamentoApiDto {
     const e = new Date(s.getTime() + 60 * 60 * 1000);
     endIso = e.toISOString();
   }
-  const title = `${p["nomePaciente"] ?? "Paciente"} - ${
-    p["especialidadeProfissional"] ?? ""
-  }`;
+  const title = `${p["especialidadeProfissional"] ?? ""} - ${p["nomePaciente"] ?? "Paciente"}`;
   return {
-    id: p["codigoConsulta"] ?? `api-${idx}-${Date.now()}`,
     title,
     start: startIso ?? new Date().toISOString(),
     end: endIso ?? new Date(Date.now() + 60 * 60 * 1000).toISOString(),
