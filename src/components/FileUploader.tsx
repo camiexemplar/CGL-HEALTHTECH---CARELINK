@@ -1,6 +1,6 @@
 import { useState, type ChangeEvent, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-
+import { API_BASE_URL } from "./ApiService";
 export type ProcessedData = Record<string, string | number | boolean>;
 type UploadStatus = "idle" | "uploading" | "success" | "error";
 
@@ -45,7 +45,7 @@ export default function FileUploader() {
       const formData = new FormData();
       formData.append("planilha", file);
 
-      const response = await fetch("http://localhost:8080/api/upload/receber", {
+      const response = await fetch(`${API_BASE_URL}/api/upload/receber`, {
         method: "POST",
         body: formData,
       });
