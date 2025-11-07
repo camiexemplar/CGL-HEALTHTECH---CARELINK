@@ -1,244 +1,166 @@
-import { useState, type FormEvent, type ChangeEvent } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { API_BASE_URL } from "./ApiService";
-import { CATEGORIAS_CONSULTA } from "./pageCalendar/dataCalendar";
+import type { ProcessedData } from "./FileUploader";
 
-type UploadStatus = "idle" | "uploading" | "success" | "error";
-
-interface ProcessedData {
-  "Data agenda": string;
-  "Hora Agenda": string;
-  "Nome paciente": string;
-  "Número celular": string;
-  "Data nascimento": string;
-  "Nome acompanhante": string;
-  "Número acompanhante": string;
-  "Nome medico": string;
-  "Especialidade": string;
-  "Código": number;
-  "Link": string;
-  "OBS": string;
-}
-
-export default function ManualUploading() {
+export default function ValidateForm() {
+  const [processedData, setProcessedData] = useState<ProcessedData[]>([]);
   const navigate = useNavigate();
-  const [status, setStatus] = useState<UploadStatus>("idle");
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
-  const [formData, setFormData] = useState<ProcessedData>({
-    "Data agenda": "",
-    "Hora Agenda": "",
-    "Nome paciente": "",
-    "Número celular": "",
-    "Data nascimento": "",
-    "Nome acompanhante": "",
-    "Número acompanhante": "",
-    "Nome medico": "",
-    "Especialidade": "",
-    "Código": 0,
-    "Link": "",
-    "OBS": "",
-  });
+  useEffect(() => {
+    const savedData = localStorage.getItem("tempPatientData");
+    if (savedData) {
+      setProcessedData(JSON.parse(savedData) as ProcessedData[]);
+    }
+  }, []);
 
-  function handleChange(
-    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: name === "Código" ? Number(value) : String(value),
-    }));
-  }
+  const handleDeleteRow = (rowIndexToDelete: number) => {
+    const updatedData = processedData.filter(
+      (_, index) => index !== rowIndexToDelete
+    );
+    setProcessedData(updatedData);
+    localStorage.setItem("tempPatientData", JSON.stringify(updatedData));
+  };
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    setStatus("uploading");
-    setErrorMsg(null);
-    setSuccessMsg(null);
+  const handleCellChange = (
+    rowIndex: number,
+    key: string,
+    newValue: string
+  ) => {
+    const newData = processedData.map((row, index) =>
+      index === rowIndex ? { ...row, [key]: newValue } : row
+    );
+    setProcessedData(newData);
+    localStorage.setItem("tempPatientData", JSON.stringify(newData));
+  };
 
+  const headers = Array.from(
+    processedData.reduce((acc, row) => {
+      Object.keys(row).forEach((key) => acc.add(key));
+      return acc;
+    }, new Set<string>())
+  );
+
+  // salvando no banco de dados:
+  const handleFinishValidation = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/upload/manual`, {
+      const response = await fetch("http://localhost:8080/api/upload/salvar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify([formData]),
+        body: JSON.stringify(processedData),
       });
 
-      if (!response.ok) throw new Error("Falha ao enviar dados");
+      if (!response.ok) {
+        throw new Error("Erro ao salvar no banco de dados");
+      }
 
-      const newJsonData: ProcessedData[] = await response.json();
-      localStorage.setItem("tempPatientData", JSON.stringify(newJsonData));
+      const savedData: ProcessedData[] = await response.json();
 
-      // ✅ Atualiza eventos no calendário local
-      const existing = JSON.parse(localStorage.getItem("calendarEvents") || "[]");
-      const newEvent = {
-        title: `${formData["Nome paciente"]} - ${formData["Especialidade"]}`,
-        start: `${formData["Data agenda"]}T${formData["Hora Agenda"]}`,
-        extendedProps: { ...formData },
-      };
-      localStorage.setItem("calendarEvents", JSON.stringify([...existing, newEvent]));
+      // remove temporário
+      localStorage.setItem("patientData", JSON.stringify(savedData));
+      localStorage.removeItem("tempPatientData");
 
-      // ✅ Mostra mensagem de sucesso e volta automaticamente
-      setStatus("success");
-      setSuccessMsg("✅ Adicionado com sucesso!");
-      setTimeout(() => {
-        navigate("/importar");
-      }, 2000);
+      navigate("/historico");
     } catch (err) {
-      console.error("Erro ao enviar dados manuais:", err);
-      setStatus("error");
-      setErrorMsg("❌ Não foi possível enviar os dados. Tente novamente.");
+      console.error(err);
+      alert("Erro ao salvar no banco");
     }
+  };
+
+  const handleBackToUpload = () => {
+    localStorage.removeItem("tempPatientData");
+    navigate("/importar");
+  };
+
+  const formatHeader = (key: string) => {
+    const result = key.replace(/([A-Z])/g, ' $1');
+    return result.charAt(0).toUpperCase() + result.slice(1).trim();
+  };
+
+  if (processedData.length === 0) {
+    return <p className="text-gray-600 text-center">Nenhum dado carregado.</p>;
   }
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-start p-4 sm:p-8 min-h-screen">
-      <h1 className="text-xl sm:text-2xl font-bold text-gray-800 text-center mb-6">
-        Inserção Manual de Dados
+    <div className="flex-1 flex flex-col items-center justify-start p-4 sm:p-10 bg-white min-h-screen">
+      <h1 className="text-xl sm:text-2xl font-bold text-gray-800 text-center mb-6 bg">
+        Validação dos Dados
       </h1>
-
-      {/* Barra de progresso */}
       <div className="flex justify-center items-center text-sm sm:text-base text-gray-600 mb-6">
-        <span className="font-semibold text-gray-800">1. Realizando o UPLOAD</span>
+        <span>1. Realizando o Upload</span>
         <span className="mx-4">|</span>
-        <span>2. Finalizando</span>
+        <span className="font-semibold text-gray-800">2. Validando</span>
+        <span className="mx-4">|</span>
+        <span>3. Finalização</span>
       </div>
 
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white rounded-2xl shadow-lg p-6 flex flex-col gap-4 w-full max-w-2xl"
-      >
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <InputField label="Data agenda" name="Data agenda" type="date" value={formData["Data agenda"]} onChange={handleChange} required />
-          <InputField label="Hora Agenda" name="Hora Agenda" type="time" value={formData["Hora Agenda"]} onChange={handleChange} required />
-          <InputField label="Nome paciente" name="Nome paciente" value={formData["Nome paciente"]} onChange={handleChange} required />
-          <InputField label="Número celular" name="Número celular" value={formData["Número celular"]} onChange={handleChange} required />
-          <InputField label="Data nascimento" name="Data nascimento" type="date" value={formData["Data nascimento"]} onChange={handleChange} />
-          <InputField label="Nome acompanhante" name="Nome acompanhante" value={formData["Nome acompanhante"]} onChange={handleChange} />
-          <InputField label="Número acompanhante" name="Número acompanhante" value={formData["Número acompanhante"]} onChange={handleChange} />
-          <InputField label="Nome médico" name="Nome medico" value={formData["Nome medico"]} onChange={handleChange} required />
+      <div className="overflow-x-auto w-full mb-4 bg-white rounded-lg shadow-lg">
+        <table className="w-full divide-y divide-gray-200 text-sm sm:text-base">
+          <thead className="bg-blue-200">
+            <tr>
+              {headers.map((key) => (
+                <th
+                  key={key}
+                  className="px-3 sm:px-4 py-3 text-left font-bold text-black uppercase tracking-wider"
+                >
 
-          {/* 🔽 Select de especialidade */}
-          <SelectField
-            label="Especialidade"
-            name="Especialidade"
-            value={formData["Especialidade"]}
-            options={CATEGORIAS_CONSULTA.map((cat) => cat.title)}
-            onChange={handleChange}
-            required
-          />
+                  {formatHeader(key)}
+                </th>
+              ))}
+              <th className="px-3 sm:px-4 py-3 text-center font-bold text-black uppercase tracking-wider">
+                Ações
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {processedData.map((row, rowIndex) => (
+              <tr key={rowIndex}>
+                {headers.map((key) => (
+                  <td
+                    key={key}
+                    className="px-2 sm:px-2 py-2 sm:py-2 whitespace-nowrap text-gray-900"
+                  >
+                    <input
+                      type="text"
+                      value={row[key] !== undefined ? String(row[key]) : "-"}
+                      onChange={(e) =>
+                        handleCellChange(rowIndex, key, e.target.value)
+                      }
+                      className="w-full border rounded px-4 py-2 sm:px-1 sm:py-3 m-4
+                                   focus:outline-none focus:ring-2 focus:ring-blue-500 
+                                   transition-all duration-200 text-sm sm:text-base"
+                    />
+                  </td>
+                ))}
+                <td className="px-3 sm:px-6 py-2 sm:py-4 text-center">
+                  <button
+                    onClick={() => handleDeleteRow(rowIndex)}
+                    className="text-red-500 hover:text-red-700 transition-colors duration-200"
+                    title="Deletar registro"
+                  >
+                    🗑️
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
-          <InputField label="Código" name="Código" type="number" value={formData["Código"]} onChange={handleChange} />
-          <InputField label="Link" name="Link" value={formData["Link"]} onChange={handleChange} />
-        </div>
+      <div className="flex justify-center sm:justify-end w-full gap-4">
+        <button
+          onClick={handleBackToUpload}
+          className="w-full sm:w-auto px-6 sm:px-8 py-3 bg-gray-600 text-white font-medium rounded-lg shadow hover:bg-gray-700 transition"
+        >
+          Voltar para Upload
+        </button>
 
-        {/* Observações */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Observações</label>
-          <textarea
-            name="OBS"
-            value={formData["OBS"] || ""}
-            onChange={handleChange}
-            rows={3}
-            className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-
-        {/* Botões */}
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mt-4">
-          <button
-            type="submit"
-            disabled={status === "uploading"}
-            className={`px-6 py-2 font-medium rounded-lg shadow transition w-full sm:w-auto ${
-              status === "uploading"
-                ? "bg-gray-400 cursor-not-allowed text-white"
-                : "bg-blue-600 hover:bg-blue-700 text-white"
-            }`}
-          >
-            {status === "uploading" ? "Enviando..." : "Enviar Dados"}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => navigate("/importar")}
-            className="px-6 py-2 bg-gray-200 text-gray-800 font-medium rounded-lg shadow hover:bg-gray-300 transition w-full sm:w-auto"
-          >
-            Voltar
-          </button>
-        </div>
-
-        {/* Mensagens de feedback */}
-        {status === "error" && (
-          <p className="text-red-600 text-center font-semibold mt-2">{errorMsg}</p>
-        )}
-        {status === "success" && (
-          <p className="text-green-600 text-center font-semibold mt-2">{successMsg}</p>
-        )}
-      </form>
-
-      {/* Link para upload de planilha */}
-      <p className="mt-6 text-sm text-gray-600 text-center">
-        Prefere enviar os dados via planilha?{" "}
-        <a href="/importar/planilha" className="text-blue-600 hover:underline font-medium">
-          Clique aqui
-        </a>
-      </p>
-    </div>
-  );
-}
-
-/* 🔹 Campo de texto genérico */
-interface InputFieldProps {
-  label: string;
-  name: string;
-  value: string | number;
-  type?: string;
-  required?: boolean;
-  onChange: (e: ChangeEvent<HTMLInputElement>) => void;
-}
-function InputField({ label, name, value, onChange, type = "text", required = false }: InputFieldProps) {
-  return (
-    <div className="flex flex-col">
-      <label className="text-sm font-medium text-gray-700 mb-1">{label}</label>
-      <input
-        type={type}
-        name={name}
-        value={value}
-        onChange={onChange}
-        required={required}
-        className="border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-      />
-    </div>
-  );
-}
-
-/* 🔹 Campo select */
-interface SelectFieldProps {
-  label: string;
-  name: string;
-  value: string;
-  options: string[];
-  required?: boolean;
-  onChange: (e: ChangeEvent<HTMLSelectElement>) => void;
-}
-function SelectField({ label, name, value, options, onChange, required = false }: SelectFieldProps) {
-  return (
-    <div className="flex flex-col">
-      <label className="text-sm font-medium text-gray-700 mb-1">{label}</label>
-      <select
-        name={name}
-        value={value}
-        onChange={onChange}
-        required={required}
-        className="border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-      >
-        <option value="">Selecione...</option>
-        {options.map((opt) => (
-          <option key={opt} value={opt}>
-            {opt}
-          </option>
-        ))}
-      </select>
+        <button
+          onClick={handleFinishValidation}
+          className="w-full sm:w-auto px-6 sm:px-8 py-3 bg-blue-600 text-white font-medium rounded-lg shadow hover:bg-green-700 transition"
+        >
+          Terminar Validação
+        </button>
+      </div>
     </div>
   );
 }

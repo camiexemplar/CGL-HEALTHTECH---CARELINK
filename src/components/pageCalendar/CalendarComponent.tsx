@@ -42,6 +42,7 @@ const CalendarComponent = forwardRef<FullCalendar, Props>(
           eventDurationEditable={false}
           eventClick={onSelectEvent}
           datesSet={onNavigate}
+          slotEventOverlap={false}
           locale={ptBr}
           eventContent={(arg) => {
             return (
