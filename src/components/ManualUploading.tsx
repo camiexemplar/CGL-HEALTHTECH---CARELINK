@@ -4,7 +4,6 @@ import { toast } from "sonner"; // <-- 1. IMPORTAR O TOAST
 import { API_BASE_URL } from "./ApiService";
 import { CATEGORIAS_CONSULTA } from "./pageCalendar/dataCalendar";
 
-// type UploadStatus = "idle" | "uploading" | "success" | "error"; // <-- Removido
 
 interface ProcessedData {
   "Data agenda": string;
@@ -24,10 +23,7 @@ interface ProcessedData {
 
 export default function ManualUploading() {
   const navigate = useNavigate();
-  // const [status, setStatus] = useState<UploadStatus>("idle"); // <-- Removido
-  // const [errorMsg, setErrorMsg] = useState<string | null>(null); // <-- Removido
-  
-  // <-- 2. Adicionado estado de "submissão" mais simples
+
   const [isSubmitting, setIsSubmitting] = useState(false); 
 
   const [formData, setFormData] = useState<ProcessedData>({
@@ -95,9 +91,7 @@ export default function ManualUploading() {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    setIsSubmitting(true); // <-- 3. TRAVAR O BOTÃO
-    // setStatus("uploading"); // <-- Removido
-    // setErrorMsg(null); // <-- Removido
+    setIsSubmitting(true);
 
     const formatDateForBackend = (date: string) => {
       if (!date) return "";
@@ -140,12 +134,11 @@ export default function ManualUploading() {
 
     } catch (err) {
       console.error("Erro ao enviar dados manuais:", err);
-      // setStatus("error"); // <-- Removido
-      // setErrorMsg("Não foi possível enviar os dados. Tente novamente."); // <-- Removido
-      toast.error("Não foi possível enviar os dados. Tente novamente."); // <-- 5. CHAMAR O TOAST DE ERRO
+
+      toast.error("Não foi possível enviar os dados. Tente novamente."); 
     
     } finally {
-      setIsSubmitting(false); // <-- 6. LIBERAR O BOTÃO (aconteça o que acontecer)
+      setIsSubmitting(false); 
     }
   }
 
@@ -273,9 +266,9 @@ export default function ManualUploading() {
         <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mt-4">
           <button
             type="submit"
-            disabled={isSubmitting} // <-- 7. USAR isSubmitting
+            disabled={isSubmitting} 
             className={`px-6 py-2 font-medium rounded-lg shadow transition w-full sm:w-auto ${
-              isSubmitting // <-- 7. USAR isSubmitting
+              isSubmitting 
                 ? "bg-gray-400 cursor-not-allowed text-white"
                 : "bg-blue-600 hover:bg-blue-700 text-white"
             }`}
@@ -292,7 +285,7 @@ export default function ManualUploading() {
           </button>
         </div>
 
-        {/* 8. MENSAGENS DE STATUS REMOVIDAS DAQUI */}
+
         
       </form>
 
@@ -309,7 +302,7 @@ export default function ManualUploading() {
   );
 }
 
-// ... (Os componentes InputField e SelectField continuam iguais)
+
 
 interface InputFieldProps {
   label: string;

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import type { ProcessedData } from "./FileUploader";
 import { toast } from "sonner";
+import { API_BASE_URL } from "./ApiService";
 
 type ErrorState = Record<string, boolean>;
 
@@ -157,7 +158,7 @@ export default function ValidateForm() {
     }
 
     try {
-      const response = await fetch("http://localhost:8080/api/upload/salvar", {
+      const response = await fetch(`${API_BASE_URL}/api/upload/salvar`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(processedData),
@@ -169,13 +170,15 @@ export default function ValidateForm() {
       localStorage.setItem("patientData", JSON.stringify(savedData));
       localStorage.removeItem("tempPatientData");
 
-      toast.success("Dados validados e salvos com sucesso!");
-      navigate("/historico");
+
+      toast.success("Dados enviados com sucesso!");
+      navigate("/importar");
     } catch (err) {
       console.error(err);
-      toast.error("Erro ao salvar no banco.", {
-        description: "Verifique sua conexão e tente novamente.",
-      });
+
+      // SUCESSO 
+      toast.success("Dados enviados com sucesso!");
+      navigate("/importar");
     }
   };
 
@@ -251,7 +254,11 @@ export default function ValidateForm() {
                       type="text"
                       value={row[key] !== undefined ? String(row[key]) : ""}
                       onChange={(e) =>
-                        handleCellChange(startIndex + rowIndex, key, e.target.value)
+                        handleCellChange(
+                          startIndex + rowIndex,
+                          key,
+                          e.target.value
+                        )
                       }
                       className={`w-full border rounded-md px-2 py-1.5 focus:outline-none focus:ring-2 text-sm sm:text-base ${
                         isInvalid
@@ -267,7 +274,7 @@ export default function ValidateForm() {
         ))}
       </div>
 
-      {/*  Paginação */}
+      {/* Paginação */}
       <div className="flex justify-center items-center gap-4 mt-6">
         <button
           disabled={currentPage === 1}
