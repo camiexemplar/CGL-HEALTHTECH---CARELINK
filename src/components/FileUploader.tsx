@@ -1,5 +1,6 @@
 import { useState, type ChangeEvent, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner"; // <-- 1. IMPORTAR O TOAST
 import { API_BASE_URL } from "./ApiService";
 export type ProcessedData = Record<string, string | number | boolean>;
 type UploadStatus = "idle" | "uploading" | "success" | "error";
@@ -7,28 +8,54 @@ type UploadStatus = "idle" | "uploading" | "success" | "error";
 export default function FileUploader() {
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState<UploadStatus>("idle");
+  // const [errorMsg, setErrorMsg] = useState<string | null>(null); // <-- REMOVIDO
   const [uploadProgress, setUploadProgress] = useState(0);
   const navigate = useNavigate();
   const cancelFlag = useRef(false);
 
   function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
-    if (e.target.files) setFile(e.target.files[0]);
+    setStatus("idle");
+    // setErrorMsg(null); // <-- REMOVIDO
+
+    if (e.target.files && e.target.files.length > 0) {
+      const selectedFile = e.target.files[0];
+
+      const isValidExtension = selectedFile.name.endsWith(".xlsx");
+      const isValidMimeType =
+        selectedFile.type ===
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+
+      if (!isValidExtension && !isValidMimeType) {
+        setStatus("error");
+        // <-- 2. CHAMAR O TOAST DE ERRO -->
+        toast.error("Tipo de arquivo inválido. Por favor, envie um .xlsx.");
+        setFile(null);
+        e.target.value = ""; 
+        return;
+      }
+
+      setFile(selectedFile);
+    } else {
+      setFile(null);
+    }
   }
-  
+
   function handleCancelUpload() {
     cancelFlag.current = true;
     setStatus("idle");
     setUploadProgress(0);
     setFile(null);
+    // setErrorMsg(null); // <-- REMOVIDO
   }
 
   async function handleFileUpload() {
     if (!file) return;
 
     setStatus("uploading");
+    // setErrorMsg(null); // <-- REMOVIDO
     setUploadProgress(0);
     cancelFlag.current = false;
-    
+
     try {
       const totalSteps = 10;
       for (let i = 1; i <= totalSteps; i++) {
@@ -36,9 +63,8 @@ export default function FileUploader() {
           console.log("Upload cancelado.");
           return;
         }
-        await new Promise(resolve => setTimeout(resolve, 150));
+        await new Promise((resolve) => setTimeout(resolve, 150));
         setUploadProgress(i * (100 / totalSteps));
-        
       }
 
       // Envia para o backend
@@ -51,18 +77,26 @@ export default function FileUploader() {
       });
 
       if (!response.ok) {
-        throw new Error("Erro ao processar arquivo");
+        throw new Error(`Erro do servidor: ${response.status}`);
       }
 
-      // Salva local
       const newJsonData: ProcessedData[] = await response.json();
       localStorage.setItem("tempPatientData", JSON.stringify(newJsonData));
 
       setStatus("success");
+      
+      // toast.success("Arquivo processado! Validando dados..."); // <-- Opcional
+      
       navigate("/validate");
+
     } catch (err) {
       console.error("Erro no upload:", err);
       setStatus("error");
+      
+      // <-- 3. CHAMAR O TOAST DE ERRO -->
+      toast.error(
+        "Falha no upload. Verifique sua conexão ou o formato do arquivo."
+      );
     }
   }
 
@@ -82,7 +116,7 @@ export default function FileUploader() {
       <div className="bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center gap-4 w-full max-w-xl">
         <input
           type="file"
-          accept=".xlsx"
+          accept=".xlsx, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
           onChange={handleFileChange}
           className="file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 
                      file:text-sm file:font-medium file:bg-blue-600 file:text-white 
@@ -120,23 +154,19 @@ export default function FileUploader() {
           </div>
         )}
 
-        {status === "error" && (
-          <p className="text-red-600 text-center font-semibold">
-            ❌ Erro ao enviar ou processar o arquivo.
-          </p>
-        )}
+        {/* 4. MENSAGEM DE ERRO REMOVIDA DAQUI */}
+        
       </div>
       <div></div>
-        <div className="mt-4 text-sm text-gray-600 text-center">
-    <span>Prefere inserir os dados manualmente?</span>{" "}
-    <a
-      href="/importar/manual"
-      className="text-blue-600 font-medium hover:underline"
-    >
-      Clique aqui
-    </a>
-  </div>
+      <div className="mt-4 text-sm text-gray-600 text-center">
+        <span>Prefere inserir os dados manualmente?</span>{" "}
+        <a
+          href="/importar/manual"
+          className="text-blue-600 font-medium hover:underline"
+        >
+          Clique aqui
+        </a>
+      </div>
     </div>
   );
 }
-
