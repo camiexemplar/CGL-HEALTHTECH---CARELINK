@@ -8,14 +8,13 @@ type UploadStatus = "idle" | "uploading" | "success" | "error";
 export default function FileUploader() {
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState<UploadStatus>("idle");
-  // const [errorMsg, setErrorMsg] = useState<string | null>(null); // <-- REMOVIDO
+
   const [uploadProgress, setUploadProgress] = useState(0);
   const navigate = useNavigate();
   const cancelFlag = useRef(false);
 
   function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
     setStatus("idle");
-    // setErrorMsg(null); // <-- REMOVIDO
 
     if (e.target.files && e.target.files.length > 0) {
       const selectedFile = e.target.files[0];
@@ -27,7 +26,7 @@ export default function FileUploader() {
 
       if (!isValidExtension && !isValidMimeType) {
         setStatus("error");
-        // <-- 2. CHAMAR O TOAST DE ERRO -->
+
         toast.error("Tipo de arquivo inválido. Por favor, envie um .xlsx.");
         setFile(null);
         e.target.value = ""; 
@@ -45,14 +44,14 @@ export default function FileUploader() {
     setStatus("idle");
     setUploadProgress(0);
     setFile(null);
-    // setErrorMsg(null); // <-- REMOVIDO
+
   }
 
   async function handleFileUpload() {
     if (!file) return;
 
     setStatus("uploading");
-    // setErrorMsg(null); // <-- REMOVIDO
+
     setUploadProgress(0);
     cancelFlag.current = false;
 
@@ -67,7 +66,7 @@ export default function FileUploader() {
         setUploadProgress(i * (100 / totalSteps));
       }
 
-      // Envia para o backend
+      // recebe do backend
       const formData = new FormData();
       formData.append("planilha", file);
 
@@ -85,7 +84,6 @@ export default function FileUploader() {
 
       setStatus("success");
       
-      // toast.success("Arquivo processado! Validando dados..."); // <-- Opcional
       
       navigate("/validate");
 
@@ -93,7 +91,7 @@ export default function FileUploader() {
       console.error("Erro no upload:", err);
       setStatus("error");
       
-      // <-- 3. CHAMAR O TOAST DE ERRO -->
+
       toast.error(
         "Falha no upload. Verifique sua conexão ou o formato do arquivo."
       );
@@ -153,8 +151,6 @@ export default function FileUploader() {
             </button>
           </div>
         )}
-
-        {/* 4. MENSAGEM DE ERRO REMOVIDA DAQUI */}
         
       </div>
       <div></div>

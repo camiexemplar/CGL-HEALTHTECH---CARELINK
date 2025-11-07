@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import type { ProcessedData } from "./FileUploader";
 import { toast } from "sonner";
 
-// Tipo para o estado de erro (ex: '3-cep': true)
 type ErrorState = Record<string, boolean>;
 
 export default function ValidateForm() {
@@ -185,7 +184,7 @@ export default function ValidateForm() {
     navigate("/importar");
   };
 
-  // 🔹 Mensagem personalizada quando não há registros
+  // não há registros
   if (processedData.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-white text-center p-6">
@@ -268,7 +267,7 @@ export default function ValidateForm() {
         ))}
       </div>
 
-      {/* 🔹 Paginação nova (estilo bonito) */}
+      {/*  Paginação */}
       <div className="flex justify-center items-center gap-4 mt-6">
         <button
           disabled={currentPage === 1}
