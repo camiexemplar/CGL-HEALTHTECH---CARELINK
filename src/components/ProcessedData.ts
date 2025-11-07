@@ -3,12 +3,12 @@ export interface ProcessedData {
   "Nome paciente": string;
   "Número celular": string;
   "Data nascimento": string;
+  "Afinidade Digital": number;
   "Nome acompanhante": string;
   "Número acompanhante": string;
   "Nome medico": string;
   "Especialidade": string;
   "Hora Agenda": string;
-  "Link": string;
   "Código": number;
   "OBS": string;
 }

@@ -11,12 +11,12 @@ interface ProcessedData {
   "Nome paciente": string;
   "Número celular": string;
   "Data nascimento": string;
+  "Afinidade Digital": number;
   "Nome acompanhante": string;
   "Número acompanhante": string;
   "Nome medico": string;
   "Especialidade": string;
   "Código": number;
-  "Link": number; // mudar para Afinidade Digital
   "OBS": string;
 }
 
@@ -31,12 +31,12 @@ export default function ManualUploading() {
     "Nome paciente": "",
     "Número celular": "",
     "Data nascimento": "",
+    "Afinidade Digital": 0,
     "Nome acompanhante": "",
     "Número acompanhante": "",
     "Nome medico": "",
     "Especialidade": "",
     "Código": 0,
-    "Link": 0,
     "OBS": "",
   });
 
@@ -65,7 +65,7 @@ export default function ManualUploading() {
       return;
     }
 
-    if (name === "Código" || name === "Link") {
+    if (name === "Código" || name === "Afinidade Digital") {
       const onlyNumbers = value.replace(/\D/g, "");
       setFormData((prev) => ({
         ...prev,
@@ -98,11 +98,11 @@ export default function ManualUploading() {
         nomePaciente: formData["Nome paciente"],
         numeroPaciente: formatPhone(formData["Número celular"]),
         dataNascimentoPaciente: formatDateForBackend(formData["Data nascimento"]),
+        afinidadeDigital: formData["Afinidade Digital"],
         nomeAcompanhante: formData["Nome acompanhante"],
         numeroAcompanhante: formatPhone(formData["Número acompanhante"]),
         especialidade: formData["Especialidade"],
         codigoConsulta: formData["Código"],
-        afinidadeDigital: formData["Link"],
         obsAgendamento: formData["OBS"],
         cep: "",
       },
@@ -223,9 +223,9 @@ export default function ManualUploading() {
           />
           <InputField
             label="Afinidade Digital"
-            name="Link"
+            name="Afinidade Digital"
             type="number"
-            value={formData["Link"]}
+            value={formData["Afinidade Digital"]}
             onChange={handleChange}
           />
         </div>
