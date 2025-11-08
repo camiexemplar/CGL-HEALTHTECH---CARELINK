@@ -48,7 +48,7 @@ export default function SidebarCalendar({
     <aside className="w-64 p-4 space-y-6 bg-gray-50 border-r border-gray-200">
       <div>
         <Calendar
-          onChange={handleMiniCalChange}
+          onChange={(value) => handleMiniCalChange(value as Date | [Date, Date] | null)}
           value={currentDate}
           locale="pt-BR"
           tileClassName={tileClassName}

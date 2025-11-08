@@ -21,6 +21,8 @@ import { TeamPage } from "./pages/TeamPage";
 import { PublicLayout } from "./components/Home/PublicLayout";
 import { HistoricoPaciente } from "./pages/historicoPaciente";
 import CalendarPage from "./pages/Calendar";
+import ManualUploading from "./components/ManualUploading";
+import UploadFiles from "./pages/UploadFiles";
 
 function App() {
   return (
@@ -43,7 +45,9 @@ function App() {
               <Route element={<ProtectedRoute />}>
                 <Route element={<Layout />}>
                   <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/importar" element={<FileUploader />} />
+                  <Route path="/importar" element={<UploadFiles />} />
+                  <Route path="/importar/planilha" element={<FileUploader />} />
+                  <Route path="/importar/manual" element={<ManualUploading />} />
                   <Route path="/validate" element={<ValidateForm />} />
                   <Route path="/historico/:idPaciente" element={<HistoricoPaciente />} />
                   <Route path="/calendario" element={<CalendarPage />} />
