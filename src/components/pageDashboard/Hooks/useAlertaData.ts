@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { AlertaItem } from "../../../types/Alerta";
+import { API_BASE_URL } from "../../ApiService";
 
 export function useAlertaData() {
     const [alertas, setAlertas] = useState<AlertaItem[] | null>(null);
@@ -13,8 +14,7 @@ export function useAlertaData() {
             setAlertas(null);
 
             try{
-                const url = 'http://localhost:8080/api/alertas/hoje';
-                const resposta = await fetch(url);
+                const resposta = await fetch(`${API_BASE_URL}/api/alertas/hoje`);
 
                 if(resposta.ok){
                     const dados = await resposta.json();

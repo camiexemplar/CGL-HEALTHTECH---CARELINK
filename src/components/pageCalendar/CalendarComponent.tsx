@@ -12,7 +12,6 @@ import {
 
 // aqui basicamente temos o calendário do fullcalendar  com sua visualização
 
-
 interface Props {
   eventos: EventInput[];
   onSelectEvent?: (clickInfo: EventClickArg) => void;
@@ -21,7 +20,7 @@ interface Props {
 }
 
 const CalendarComponent = forwardRef<FullCalendar, Props>(
-  ({ eventos, onSelectEvent, currentDate, onNavigate }, ref) => {
+  ({ eventos, onSelectEvent, onNavigate }, ref) => {
     return (
       <main className="flex-1 p-4 bg-white rounded-lg shadow-md">
         <FullCalendar
@@ -42,7 +41,15 @@ const CalendarComponent = forwardRef<FullCalendar, Props>(
           eventDurationEditable={false}
           eventClick={onSelectEvent}
           datesSet={onNavigate}
+          slotEventOverlap={false}
           locale={ptBr}
+          eventContent={(arg) => {
+            return (
+              <div className="p-1">
+                <div className="font-bold">{arg.event.title}</div>
+              </div>
+            );
+          }}
         />
       </main>
     );

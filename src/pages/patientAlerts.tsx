@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { API_BASE_URL } from '../components/ApiService';
 
 interface Message {
   id: string;
@@ -49,15 +50,15 @@ export function SendAlerts() {
 
     try {
   
-      const response = await fetch('http://localhost:8000/api/staff-chat', {
-        method: 'POST',
+      const response = await fetch(`${API_BASE_URL}/api/staff-chat`, {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           message: inputMessage,
-          user_id: 'funcionario_001' // id do funcionário logado
-        })
+          user_id: "funcionario_001", // id do funcionário logado
+        }),
       });
 
       const data = await response.json();

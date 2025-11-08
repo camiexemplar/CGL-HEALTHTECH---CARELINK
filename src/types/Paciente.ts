@@ -42,7 +42,7 @@ export interface InteracaoEquipe extends InteracaoBase {
 
 export interface InteracaoConsulta extends InteracaoBase {
   tipo: "CONSULTA";
-  status: "REALIZADA" | "FALTOU" | "AGENDADO" | "CANCELADA";
+  status: "REALIZADA" | "PACIENTE NAO COMPARECEU" | "AGENDADA" | "CANCELADA";
   modalidade: "Telefone" | "Vídeo" | "Presencial" | "Híbrida";
   profissional: string;
   especialidade: string;
