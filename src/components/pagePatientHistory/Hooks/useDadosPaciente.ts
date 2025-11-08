@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { DadosPaciente } from "../../../types/Paciente";
+import { API_BASE_URL } from "../../ApiService";
 
 export function useDadosPaciente() {
   const [idPaciente, setIdPaciente] = useState<string | null>(null);
@@ -19,8 +20,8 @@ export function useDadosPaciente() {
       // Dentro da função async buscarDadosDoPaciente
 
       try {
-        const url = `http://localhost:8080/api/paciente/${idPaciente}/historico`;
-        const resposta = await fetch(url);
+        const url = `${API_BASE_URL}/api/paciente/${idPaciente}/historico`;
+      const resposta = await fetch(url);
 
         if (resposta.ok) {
           const dados = await resposta.json();
