@@ -13,7 +13,7 @@ import {
   AgendamentoService,
   type AgendamentoApiDto,
 } from "../components/pageCalendar/AgendamentoService";
-import { API_BASE_URL } from "../components/ApiService";
+import { API_JAVA_URL } from "../components/ApiService";
 
 export default function Calendar() {
   const [eventos, setEventos] = useState<EventInput[]>([]);
@@ -27,7 +27,7 @@ export default function Calendar() {
   const [editedEvent, setEditedEvent] = useState<any>(null);
   const calendarRef = useRef<FullCalendar>(null);
 
-  const ENDPOINT = `${API_BASE_URL}/agendamentos`;
+  const ENDPOINT = `${API_JAVA_URL}/agendamentos`;
 
   /** Converte o DTO da API para o formato aceito pelo FullCalendar */
   function dtoToEventInput(dto: AgendamentoApiDto): EventInput {
@@ -351,7 +351,9 @@ export default function Calendar() {
                   >
                     <option value="AGENDADA">Agendada</option>
                     <option value="REALIZADA">Realizada</option>
-                    <option value="PACIENTE NAO COMPARECEU">Paciente não compareceu</option>
+                    <option value="PACIENTE NAO COMPARECEU">
+                      Paciente não compareceu
+                    </option>
                     <option value="CANCELADA">Cancelada</option>
                   </select>
                 ) : (
@@ -412,14 +414,14 @@ export default function Calendar() {
                   {/* O botão "Editar" agora verifica o status da consulta */}
                   <button
                     onClick={() => setIsEditing(true)}
-                    disabled={
-                      ["REALIZADA", "CANCELADA"].includes(
-                        selectedEvent.extendedProps?.["statusConsulta"]
-                      )
-                    }
+                    disabled={["REALIZADA", "CANCELADA"].includes(
+                      selectedEvent.extendedProps?.["statusConsulta"]
+                    )}
                     className={`px-6 py-2 rounded-xl text-white font-medium transition mr-4 ${
-                      selectedEvent.extendedProps?.["statusConsulta"] === "REALIZADA" ||
-                      selectedEvent.extendedProps?.["statusConsulta"] === "CANCELADA"
+                      selectedEvent.extendedProps?.["statusConsulta"] ===
+                        "REALIZADA" ||
+                      selectedEvent.extendedProps?.["statusConsulta"] ===
+                        "CANCELADA"
                         ? "bg-gray-400 cursor-not-allowed"
                         : "bg-yellow-500 hover:bg-yellow-600"
                     }`}

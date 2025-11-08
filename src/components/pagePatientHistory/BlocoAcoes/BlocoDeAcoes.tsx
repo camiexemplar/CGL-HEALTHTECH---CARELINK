@@ -3,7 +3,7 @@ import { useState, type Dispatch, type SetStateAction } from "react";
 import type { DadosPaciente } from "../../../types/Paciente";
 import { toast } from "sonner";
 import { AnotacoesCard } from "./AnotacoesCard";
-import { API_BASE_URL } from "../../ApiService";
+import { API_JAVA_URL } from "../../ApiService";
 
 export interface BlocoDeAcoesProps {
   idPaciente: string;
@@ -13,16 +13,17 @@ export interface BlocoDeAcoesProps {
 export function BlocoDeAcoes({ idPaciente, setPaciente }: BlocoDeAcoesProps) {
   const [enviando, setEnviando] = useState(false);
 
-
   //enviando lembrete ao paciente via whatsapp \/ por ID
   const handleReenviarLembrete = async () => {
     setEnviando(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/enviarlembrete`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ idPaciente }),
-      });
+      // idPaciente na URL como path parameter
+      const response = await fetch(
+        `${API_JAVA_URL}/alerta-webhook/enviar-lembrete/${idPaciente}`,
+        {
+          method: "POST",
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Falha ao reenviar lembrete.");
@@ -39,7 +40,6 @@ export function BlocoDeAcoes({ idPaciente, setPaciente }: BlocoDeAcoesProps) {
 
   return (
     <div className="sticky top-0 space-y-6">
-
       <AnotacoesCard idPaciente={idPaciente} setPaciente={setPaciente} />
 
       <div className="space-y-3">

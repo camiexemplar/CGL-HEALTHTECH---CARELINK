@@ -18,7 +18,12 @@ export function InformacoesDashboard({
     ) ?? [];
 
   const pacientesAltoRisco =
-    alertaItem?.filter((item) => item.nivelDeRisco === "ALTO" || item.nivelDeRisco === "CRITICO").length ?? 0;
+    alertaItem?.filter(
+      (item) => item.nivelDeRisco === "ALTO" || item.nivelDeRisco === "CRITICO"
+    ).length ?? 0;
+
+  const pacientesReagendamento =
+    alertaItem?.filter((item) => item.scoreDeRisco === 1000).length ?? 0;
 
   return (
     <div className="space-y-6">
@@ -29,10 +34,29 @@ export function InformacoesDashboard({
         Consultas Agendadas para hoje ({data.toLocaleDateString()})
       </h2>
 
+      {pacientesReagendamento > 0 && (
+        <div
+          className={`flex justify-between items-center text-white p-4 rounded-lg shadow-xl bg-purple-700 animate-pulse`}
+        >
+          <h2 className="text-xl font-semibold">Ação Urgente Necessária</h2>
+
+          {pacientesReagendamento === 1 ? (
+            <h2 className="text-2xl font-extrabold">
+              {pacientesReagendamento} paciente precisa reagendar uma consulta
+            </h2>
+          ) : (
+            <h2 className="text-2xl font-extrabold">
+              {pacientesReagendamento} pacientes precisam reagendar uma consulta
+            </h2>
+          )}
+        </div>
+      )}
+
       <div
         className={`flex justify-between items-center text-white p-4 rounded-lg shadow-md ${
-          pacientesAltoRisco > 0 ? 'bg-red-600' : 'bg-green-600'
-        }`}>
+          pacientesAltoRisco > 0 ? "bg-red-600" : "bg-green-600"
+        }`}
+      >
         <h2 className="text-xl font-semibold">Priorização de Atendimento</h2>
 
         {pacientesAltoRisco > 0 && pacientesAltoRisco === 1 ? (

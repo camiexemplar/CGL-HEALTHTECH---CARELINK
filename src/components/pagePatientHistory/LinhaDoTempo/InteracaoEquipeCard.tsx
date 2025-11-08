@@ -4,7 +4,7 @@ import type {
   AnotacaoUpdateDTO,
   InteracaoEquipe,
 } from "../../../types/Paciente";
-import { API_BASE_URL } from "../../ApiService";
+import { API_JAVA_URL } from "../../ApiService";
 
 export interface InteracaoEquipeCardProps {
   interacaoEquipe: InteracaoEquipe;
@@ -34,7 +34,7 @@ export function InteracaoEquipeCard({
 
     try {
       setEstaSalvando(true);
-      const response = await fetch(`${API_BASE_URL}/api/anotacoes`, {
+      const response = await fetch(`${API_JAVA_URL}/api/anotacoes`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(novaAnotacaoInput),
