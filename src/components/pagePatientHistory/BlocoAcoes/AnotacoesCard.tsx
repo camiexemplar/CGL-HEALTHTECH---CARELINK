@@ -1,5 +1,6 @@
 import { useState, type Dispatch, type SetStateAction } from "react";
 import type { AnotacaoInputDTO, DadosPaciente, InteracaoEquipe } from "../../../types/Paciente";
+import { API_BASE_URL } from "../../ApiService";
 
 export interface AnotacoesCardProps {
   idPaciente: string;
@@ -28,11 +29,11 @@ export function AnotacoesCard({ idPaciente: idPaciente, setPaciente: setPaciente
       conteudoAnotacao: novaAnotacao.trim(),
     };
 
-    try {
-        const response = await fetch("http://localhost:8080/api/anotacoes", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(anotacaoInput),
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/anotacoes`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(anotacaoInput),
         });
 
         if (!response.ok) {

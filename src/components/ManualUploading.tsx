@@ -1,9 +1,9 @@
 import { useState, type FormEvent, type ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner"; // <-- 1. IMPORTAR O TOAST
 import { API_BASE_URL } from "./ApiService";
 import { CATEGORIAS_CONSULTA } from "./pageCalendar/dataCalendar";
 
-type UploadStatus = "idle" | "uploading" | "success" | "error";
 
 interface ProcessedData {
   "Data agenda": string;
@@ -18,12 +18,13 @@ interface ProcessedData {
   "Especialidade": string;
   "Código": number;
   "OBS": string;
+  "CEP": string; 
 }
 
 export default function ManualUploading() {
   const navigate = useNavigate();
-  const [status, setStatus] = useState<UploadStatus>("idle");
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const [isSubmitting, setIsSubmitting] = useState(false); 
 
   const [formData, setFormData] = useState<ProcessedData>({
     "Data agenda": "",
@@ -38,6 +39,7 @@ export default function ManualUploading() {
     "Especialidade": "",
     "Código": 0,
     "OBS": "",
+    "CEP": "", 
   });
 
   // datas
@@ -65,6 +67,16 @@ export default function ManualUploading() {
       return;
     }
 
+    if (name === "CEP") {
+      const onlyNumbers = value.replace(/\D/g, "").slice(0, 8);
+      let masked = onlyNumbers;
+      if (onlyNumbers.length > 5) {
+        masked = `${onlyNumbers.slice(0, 5)}-${onlyNumbers.slice(5, 8)}`;
+      }
+      setFormData((prev) => ({ ...prev, [name]: masked }));
+      return;
+    }
+
     if (name === "Código" || name === "Afinidade Digital") {
       const onlyNumbers = value.replace(/\D/g, "");
       setFormData((prev) => ({
@@ -79,8 +91,7 @@ export default function ManualUploading() {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    setStatus("uploading");
-    setErrorMsg(null);
+    setIsSubmitting(true);
 
     const formatDateForBackend = (date: string) => {
       if (!date) return "";
@@ -104,7 +115,7 @@ export default function ManualUploading() {
         especialidade: formData["Especialidade"],
         codigoConsulta: formData["Código"],
         obsAgendamento: formData["OBS"],
-        cep: "",
+        cep: formatPhone(formData["CEP"]),
       },
     ];
 
@@ -117,12 +128,17 @@ export default function ManualUploading() {
 
       if (!response.ok) throw new Error("Falha ao enviar dados");
 
-      setStatus("success");
+      // setStatus("success"); // <-- Removido
+      toast.success("Dados enviados com sucesso!"); // <-- 4. CHAMAR O TOAST DE SUCESSO
       navigate("/importar");
+
     } catch (err) {
       console.error("Erro ao enviar dados manuais:", err);
-      setStatus("error");
-      setErrorMsg("Não foi possível enviar os dados. Tente novamente.");
+
+      toast.error("Não foi possível enviar os dados. Tente novamente."); 
+    
+    } finally {
+      setIsSubmitting(false); 
     }
   }
 
@@ -186,6 +202,12 @@ export default function ManualUploading() {
             max={birthMax}
           />
           <InputField
+            label="CEP"
+            name="CEP"
+            value={formData["CEP"]}
+            onChange={handleChange}
+          />
+          <InputField
             label="Nome acompanhante"
             name="Nome acompanhante"
             value={formData["Nome acompanhante"]}
@@ -244,14 +266,14 @@ export default function ManualUploading() {
         <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mt-4">
           <button
             type="submit"
-            disabled={status === "uploading"}
+            disabled={isSubmitting} 
             className={`px-6 py-2 font-medium rounded-lg shadow transition w-full sm:w-auto ${
-              status === "uploading"
+              isSubmitting 
                 ? "bg-gray-400 cursor-not-allowed text-white"
                 : "bg-blue-600 hover:bg-blue-700 text-white"
             }`}
           >
-            {status === "uploading" ? "Enviando..." : "Enviar Dados"}
+            {isSubmitting ? "Enviando..." : "Enviar Dados"} 
           </button>
 
           <button
@@ -263,16 +285,8 @@ export default function ManualUploading() {
           </button>
         </div>
 
-        {status === "error" && (
-          <p className="text-red-600 text-center font-semibold mt-2">
-            ❌ {errorMsg}
-          </p>
-        )}
-        {status === "success" && (
-          <p className="text-green-600 text-center font-semibold mt-2">
-            Dados enviados com sucesso!
-          </p>
-        )}
+
+        
       </form>
 
       <p className="mt-6 text-sm text-gray-600 text-center">
@@ -287,6 +301,8 @@ export default function ManualUploading() {
     </div>
   );
 }
+
+
 
 interface InputFieldProps {
   label: string;
