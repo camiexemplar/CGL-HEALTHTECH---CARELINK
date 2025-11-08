@@ -9,13 +9,16 @@ export function useTimelineLogic(rawHistory: LinhaDoTempoDTO[] | undefined) {
 
   const historyToUse = rawHistory || [];
 
+  const parseDateTime = (data: string, hora: string) => {
+    const [dia, mes, ano] = data.split("/");
+    return new Date(`${ano}-${mes}-${dia}T${hora}`);
+  };
+
   const filteredAndSortedHistory = historyToUse
     .filter((item) => filter === "TODOS" || item.tipo === filter)
     .sort((a, b) => {
-      const timestampA = new Date(`${a.data}T${a.hora}`).getTime();
-      const timestampB = new Date(`${b.data}T${b.hora}`).getTime();
-
-      if (isNaN(timestampA) || isNaN(timestampB)) return 0;
+      const timestampA = parseDateTime(a.data, a.hora).getTime();
+      const timestampB = parseDateTime(b.data, b.hora).getTime();
 
       return sortOrder === "RECENTE"
         ? timestampB - timestampA

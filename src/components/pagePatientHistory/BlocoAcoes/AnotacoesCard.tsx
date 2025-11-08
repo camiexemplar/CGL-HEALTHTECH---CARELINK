@@ -1,6 +1,7 @@
 import { useState, type Dispatch, type SetStateAction } from "react";
 import type { AnotacaoInputDTO, DadosPaciente, InteracaoEquipe } from "../../../types/Paciente";
 import { API_BASE_URL } from "../../ApiService";
+import { toast } from "sonner";
 
 export interface AnotacoesCardProps {
   idPaciente: string;
@@ -41,15 +42,24 @@ export function AnotacoesCard({ idPaciente: idPaciente, setPaciente: setPaciente
         }
 
         setPaciente((prevState) => {
-          if (!prevState) return null;
-          return {
-            ...prevState,
-            linhaDoTempo: [novaInteracao, ...prevState.linhaDoTempo],
-          };
-        });
+        if (!prevState) return null;
 
-        setNovaAnotacao("");
-        alert("Anotação salva com sucesso!");
+        const timelineExistente = prevState.linhaDoTempo;
+        const novaTimeline = [novaInteracao, ...timelineExistente];
+
+        // Remove duplicados pelo `id`
+        const timelineUnica = Array.from(new Map(novaTimeline.map(item => [item.id, item])).values());
+
+        return {
+          ...prevState,
+          linhaDoTempo: timelineUnica,
+        };
+      });
+
+      setNovaAnotacao("");
+      toast.success("Anotação registrada com sucesso!", {
+        description: "Você poderá vê-la imediatamente na linha do tempo.",
+      });
 
     } catch (error) {
         console.error("Erro na persistência da anotação:", error);

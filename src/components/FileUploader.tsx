@@ -1,6 +1,6 @@
 import { useState, type ChangeEvent, useRef } from "react";
-import { useNavigate } from "react-router-dom";
-import { toast } from "sonner"; // <-- 1. IMPORTAR O TOAST
+import { useNavigate, Link } from "react-router-dom";
+import { toast } from "sonner";
 import { API_BASE_URL } from "./ApiService";
 export type ProcessedData = Record<string, string | number | boolean>;
 type UploadStatus = "idle" | "uploading" | "success" | "error";
@@ -44,7 +44,6 @@ export default function FileUploader() {
     setStatus("idle");
     setUploadProgress(0);
     setFile(null);
-
   }
 
   async function handleFileUpload() {
@@ -83,14 +82,11 @@ export default function FileUploader() {
       localStorage.setItem("tempPatientData", JSON.stringify(newJsonData));
 
       setStatus("success");
-      
-      
       navigate("/validate");
 
     } catch (err) {
       console.error("Erro no upload:", err);
       setStatus("error");
-      
 
       toast.error(
         "Falha no upload. Verifique sua conexão ou o formato do arquivo."
@@ -151,17 +147,16 @@ export default function FileUploader() {
             </button>
           </div>
         )}
-        
       </div>
-      <div></div>
+
       <div className="mt-4 text-sm text-gray-600 text-center">
         <span>Prefere inserir os dados manualmente?</span>{" "}
-        <a
-          href="/importar/manual"
+        <Link
+          to="/importar"
           className="text-blue-600 font-medium hover:underline"
         >
           Clique aqui
-        </a>
+        </Link>
       </div>
     </div>
   );

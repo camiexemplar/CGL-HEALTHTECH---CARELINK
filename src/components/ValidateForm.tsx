@@ -10,6 +10,7 @@ export default function ValidateForm() {
   const [processedData, setProcessedData] = useState<ProcessedData[]>([]);
   const [errors, setErrors] = useState<ErrorState>({});
   const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const ITEMS_PER_PAGE = 5;
@@ -35,6 +36,29 @@ export default function ValidateForm() {
 
   const validateCell = (key: string, value: unknown): boolean => {
     if (OPTIONAL_KEYS.has(key)) return false;
+    const stringValue = String(value).replace(/\D/g, "");
+
+    if (key.toLowerCase().includes("numero")) {
+      return !(stringValue.length === 10 || stringValue.length === 11);
+    }
+
+    if (key.toLowerCase().includes("data")) {
+      if (!/^\d{2}\/\d{2}\/\d{4}$/.test(String(value))) return true;
+      const [day, month, year] = String(value).split("/").map(Number);
+      const dateObj = new Date(year, month - 1, day);
+      return (
+        dateObj.getFullYear() !== year ||
+        dateObj.getMonth() !== month - 1 ||
+        dateObj.getDate() !== day
+      );
+    }
+
+    if (key.toLowerCase().includes("hora")) {
+      if (!/^\d{2}:\d{2}$/.test(String(value))) return true;
+      const [hours, minutes] = String(value).split(":").map(Number);
+      return hours < 0 || hours > 23 || minutes < 0 || minutes > 59;
+    }
+
     return value === undefined || value === null || String(value).trim() === "";
   };
 
@@ -151,11 +175,13 @@ export default function ValidateForm() {
     setErrors(newErrors);
 
     if (hasError) {
-      toast.error("Existem campos obrigatórios vazios.", {
+      toast.error("Existem campos obrigatórios inválidos ou vazios.", {
         description: "Verifique os campos destacados em vermelho.",
       });
       return;
     }
+
+    setLoading(true);
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/upload/salvar`, {
@@ -170,15 +196,14 @@ export default function ValidateForm() {
       localStorage.setItem("patientData", JSON.stringify(savedData));
       localStorage.removeItem("tempPatientData");
 
-
       toast.success("Dados enviados com sucesso!");
       navigate("/importar");
     } catch (err) {
       console.error(err);
-
-      // SUCESSO 
       toast.success("Dados enviados com sucesso!");
       navigate("/importar");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -187,7 +212,6 @@ export default function ValidateForm() {
     navigate("/importar");
   };
 
-  // não há registros
   if (processedData.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-white text-center p-6">
@@ -202,7 +226,6 @@ export default function ValidateForm() {
     );
   }
 
-  // Paginação
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const paginatedData = processedData.slice(
     startIndex,
@@ -266,6 +289,17 @@ export default function ValidateForm() {
                           : "border-gray-300 focus:ring-blue-500"
                       }`}
                     />
+                    {key.toLowerCase().includes("numero") && isInvalid && (
+                      <p className="text-red-500 text-xs mt-1">
+                        Número de celular incompleto
+                      </p>
+                    )}
+                    {key.toLowerCase().includes("data") && isInvalid && (
+                      <p className="text-red-500 text-xs mt-1">Data inválida (DD-MM-YYYY)</p>
+                    )}
+                    {key.toLowerCase().includes("hora") && isInvalid && (
+                      <p className="text-red-500 text-xs mt-1">Hora inválida (HH-MM)</p>
+                    )}
                   </div>
                 );
               })}
@@ -274,7 +308,6 @@ export default function ValidateForm() {
         ))}
       </div>
 
-      {/* Paginação */}
       <div className="flex justify-center items-center gap-4 mt-6">
         <button
           disabled={currentPage === 1}
@@ -291,7 +324,7 @@ export default function ValidateForm() {
           onClick={() => setCurrentPage((p) => p + 1)}
           className="px-4 py-2 bg-blue-100 rounded-lg disabled:opacity-50 hover:bg-blue-200 transition"
         >
-          Próxima →
+          Próxima → 
         </button>
       </div>
 
@@ -305,9 +338,12 @@ export default function ValidateForm() {
 
         <button
           onClick={handleFinishValidation}
-          className="w-full sm:w-auto px-6 sm:px-8 py-3 bg-blue-600 text-white font-medium rounded-lg shadow hover:bg-blue-700 transition"
+          disabled={loading}
+          className={`w-full sm:w-auto px-6 sm:px-8 py-3 bg-blue-600 text-white font-medium rounded-lg shadow hover:bg-blue-700 transition ${
+            loading ? "opacity-50 cursor-not-allowed" : ""
+          }`}
         >
-          Terminar Validação
+          {loading ? "Enviando..." : "Terminar Validação"}
         </button>
       </div>
     </div>

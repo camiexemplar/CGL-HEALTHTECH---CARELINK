@@ -1,5 +1,5 @@
 import { useState, type FormEvent, type ChangeEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner"; // <-- 1. IMPORTAR O TOAST
 import { API_BASE_URL } from "./ApiService";
 import { CATEGORIAS_CONSULTA } from "./pageCalendar/dataCalendar";
@@ -291,17 +291,16 @@ export default function ManualUploading() {
 
       <p className="mt-6 text-sm text-gray-600 text-center">
         Prefere enviar os dados via planilha?{" "}
-        <a
-          href="/importar/planilha"
+        <Link
+          to="/importar/"
           className="text-blue-600 hover:underline font-medium"
         >
           Clique aqui
-        </a>
+        </Link>
       </p>
     </div>
   );
 }
-
 
 
 interface InputFieldProps {
