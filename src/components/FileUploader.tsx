@@ -1,20 +1,44 @@
 import { useState, type ChangeEvent, useRef } from "react";
-import { useNavigate } from "react-router-dom";
-
+import { useNavigate, Link } from "react-router-dom";
+import { toast } from "sonner";
+import { API_JAVA_URL } from "./ApiService";
 export type ProcessedData = Record<string, string | number | boolean>;
 type UploadStatus = "idle" | "uploading" | "success" | "error";
 
 export default function FileUploader() {
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState<UploadStatus>("idle");
+
   const [uploadProgress, setUploadProgress] = useState(0);
   const navigate = useNavigate();
   const cancelFlag = useRef(false);
 
   function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
-    if (e.target.files) setFile(e.target.files[0]);
+    setStatus("idle");
+
+    if (e.target.files && e.target.files.length > 0) {
+      const selectedFile = e.target.files[0];
+
+      const isValidExtension = selectedFile.name.endsWith(".xlsx");
+      const isValidMimeType =
+        selectedFile.type ===
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+
+      if (!isValidExtension && !isValidMimeType) {
+        setStatus("error");
+
+        toast.error("Tipo de arquivo inválido. Por favor, envie um .xlsx.");
+        setFile(null);
+        e.target.value = "";
+        return;
+      }
+
+      setFile(selectedFile);
+    } else {
+      setFile(null);
+    }
   }
-  
+
   function handleCancelUpload() {
     cancelFlag.current = true;
     setStatus("idle");
@@ -26,9 +50,10 @@ export default function FileUploader() {
     if (!file) return;
 
     setStatus("uploading");
+
     setUploadProgress(0);
     cancelFlag.current = false;
-    
+
     try {
       const totalSteps = 10;
       for (let i = 1; i <= totalSteps; i++) {
@@ -36,25 +61,23 @@ export default function FileUploader() {
           console.log("Upload cancelado.");
           return;
         }
-        await new Promise(resolve => setTimeout(resolve, 150));
+        await new Promise((resolve) => setTimeout(resolve, 150));
         setUploadProgress(i * (100 / totalSteps));
-        
       }
 
-      // Envia para o backend
+      // recebe do backend
       const formData = new FormData();
       formData.append("planilha", file);
 
-      const response = await fetch("http://localhost:8080/api/upload/receber", {
+      const response = await fetch(`${API_JAVA_URL}/api/upload/receber`, {
         method: "POST",
         body: formData,
       });
 
       if (!response.ok) {
-        throw new Error("Erro ao processar arquivo");
+        throw new Error(`Erro do servidor: ${response.status}`);
       }
 
-      // Salva local
       const newJsonData: ProcessedData[] = await response.json();
       localStorage.setItem("tempPatientData", JSON.stringify(newJsonData));
 
@@ -63,6 +86,10 @@ export default function FileUploader() {
     } catch (err) {
       console.error("Erro no upload:", err);
       setStatus("error");
+
+      toast.error(
+        "Falha no upload. Verifique sua conexão ou o formato do arquivo."
+      );
     }
   }
 
@@ -72,7 +99,9 @@ export default function FileUploader() {
         Upload de Arquivo
       </h1>
       <div className="flex justify-center items-center text-sm sm:text-base text-gray-600 mb-6">
-        <span className="font-semibold text-gray-800">1. Realizando o UPLOAD</span>
+        <span className="font-semibold text-gray-800">
+          1. Realizando o UPLOAD
+        </span>
         <span className="mx-4">|</span>
         <span>2. Validando</span>
         <span className="mx-4">|</span>
@@ -82,7 +111,7 @@ export default function FileUploader() {
       <div className="bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center gap-4 w-full max-w-xl">
         <input
           type="file"
-          accept=".xlsx"
+          accept=".xlsx, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
           onChange={handleFileChange}
           className="file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 
                      file:text-sm file:font-medium file:bg-blue-600 file:text-white 
@@ -119,15 +148,17 @@ export default function FileUploader() {
             </button>
           </div>
         )}
-
-        {status === "error" && (
-          <p className="text-red-600 text-center font-semibold">
-            ❌ Erro ao enviar ou processar o arquivo.
-          </p>
-        )}
       </div>
-      <div></div>
+
+      <div className="mt-4 text-sm text-gray-600 text-center">
+        <span>Prefere inserir os dados manualmente?</span>{" "}
+        <Link
+          to="/importar"
+          className="text-blue-600 font-medium hover:underline"
+        >
+          Clique aqui
+        </Link>
+      </div>
     </div>
   );
 }
-
