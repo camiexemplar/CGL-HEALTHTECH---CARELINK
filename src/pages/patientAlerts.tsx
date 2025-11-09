@@ -58,7 +58,7 @@ export function SendAlerts() {
         },
         body: JSON.stringify({
           message: inputMessage,
-          user_id: "funcionario_001", // id do funcionário logado
+          user_id: "funcionario_001", 
         }),
       });
 
@@ -107,23 +107,23 @@ export function SendAlerts() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
       <div className="max-w-4xl mx-auto">
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">
+        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-4 sm:mb-6">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">
             Relatórios Inteligentes
           </h1>
-          <p className="text-gray-600">
+          <p className="text-sm sm:text-base text-gray-600">
             Consulta inteligente aos dados do hospital em tempo real
           </p>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-6">
+        <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
           {/* Chat Principal */}
           <div className="flex-1">
             <div className="bg-white rounded-lg shadow-sm overflow-hidden">
               {/* Área de Mensagens */}
-              <div className="h-96 overflow-y-auto p-4 space-y-4">
+              <div className="h-80 sm:h-96 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4">
                 {messages.map((message) => (
                   <div
                     key={message.id}
@@ -132,13 +132,13 @@ export function SendAlerts() {
                     }`}
                   >
                     <div
-                      className={`max-w-xs lg:max-w-md rounded-lg p-3 ${
+                      className={`max-w-[85%] sm:max-w-xs lg:max-w-md rounded-lg p-3 ${
                         message.isUser
                           ? "bg-blue-500 text-white rounded-br-none"
                           : "bg-gray-100 text-gray-800 rounded-bl-none"
                       }`}
                     >
-                      <p className="text-sm">{message.text}</p>
+                      <p className="text-sm sm:text-base">{message.text}</p>
                       <p
                         className={`text-xs mt-1 ${
                           message.isUser ? "text-blue-100" : "text-gray-500"
@@ -174,21 +174,21 @@ export function SendAlerts() {
               </div>
 
               {/* Input Area */}
-              <div className="border-t p-4">
-                <div className="flex space-x-2">
+              <div className="border-t p-3 sm:p-4">
+                <div className="flex flex-col sm:flex-row gap-2 sm:space-x-2">
                   <textarea
                     value={inputMessage}
                     onChange={(e) => setInputMessage(e.target.value)}
                     onKeyPress={handleKeyPress}
                     placeholder="Digite sua pergunta sobre os dados do hospital..."
-                    className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                    className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm sm:text-base"
                     rows={2}
                     disabled={isLoading}
                   />
                   <button
                     onClick={handleSendMessage}
                     disabled={isLoading || !inputMessage.trim()}
-                    className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base whitespace-nowrap"
                   >
                     Enviar
                   </button>
@@ -198,9 +198,9 @@ export function SendAlerts() {
           </div>
 
           {/* Sidebar com Perguntas Rápidas */}
-          <div className="w-full lg:w-64">
+          <div className="w-full lg:w-64 mt-4 lg:mt-0">
             <div className="bg-white rounded-lg shadow-sm p-4">
-              <h3 className="font-semibold text-gray-800 mb-3">
+              <h3 className="font-semibold text-gray-800 mb-3 text-sm sm:text-base">
                 Perguntas Rápidas
               </h3>
               <div className="space-y-2">
@@ -208,7 +208,7 @@ export function SendAlerts() {
                   <button
                     key={index}
                     onClick={() => handleQuickQuestion(question)}
-                    className="w-full text-left text-sm text-gray-600 hover:text-blue-500 hover:bg-blue-50 p-2 rounded transition-colors"
+                    className="w-full text-left text-xs sm:text-sm text-gray-600 hover:text-blue-500 hover:bg-blue-50 p-2 rounded transition-colors"
                   >
                     {question}
                   </button>
@@ -218,21 +218,21 @@ export function SendAlerts() {
 
             {/* Estatísticas Rápidas */}
             <div className="bg-white rounded-lg shadow-sm p-4 mt-4">
-              <h3 className="font-semibold text-gray-800 mb-3">
+              <h3 className="font-semibold text-gray-800 mb-3 text-sm sm:text-base">
                 Dados em Tempo Real
               </h3>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Pacientes Hoje:</span>
-                  <span className="font-semibold text-blue-500">--</span>
+                  <span className="text-xs sm:text-sm text-gray-600">Pacientes Hoje:</span>
+                  <span className="font-semibold text-blue-500 text-xs sm:text-sm">--</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Consultas:</span>
-                  <span className="font-semibold text-green-500">--</span>
+                  <span className="text-xs sm:text-sm text-gray-600">Consultas:</span>
+                  <span className="font-semibold text-green-500 text-xs sm:text-sm">--</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Faltas:</span>
-                  <span className="font-semibold text-red-500">--</span>
+                  <span className="text-xs sm:text-sm text-gray-600">Faltas:</span>
+                  <span className="font-semibold text-red-500 text-xs sm:text-sm">--</span>
                 </div>
               </div>
             </div>
