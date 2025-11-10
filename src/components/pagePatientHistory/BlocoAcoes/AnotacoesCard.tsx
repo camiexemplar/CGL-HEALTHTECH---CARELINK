@@ -47,7 +47,7 @@ export function AnotacoesCard({ idPaciente: idPaciente, setPaciente: setPaciente
         const timelineExistente = prevState.linhaDoTempo;
         const novaTimeline = [novaInteracao, ...timelineExistente];
 
-        // Remove duplicados pelo `id`
+
         const timelineUnica = Array.from(new Map(novaTimeline.map(item => [item.id, item])).values());
 
         return {

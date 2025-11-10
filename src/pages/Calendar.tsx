@@ -46,13 +46,13 @@ export default function Calendar() {
       color: categoria?.color ?? "#6b7280",
       extendedProps: {
         ...dto.extended,
-        categoriaId: categoria?.id ?? "outros", // 🔥 usado no filtro
+        categoriaId: categoria?.id ?? "outros", 
         codigoConsulta: dto.extended?.["idConsulta"] ?? "",
       },
     };
   }
 
-  /** Aplica os filtros de categoria */
+
   const eventosFiltrados = useMemo(() => {
     return eventos.filter((evento) => {
       const categoriaId = evento.extendedProps?.categoriaId as
@@ -62,7 +62,7 @@ export default function Calendar() {
     });
   }, [eventos, filtrosAtivos]);
 
-  /** Busca os agendamentos conforme o intervalo visível do calendário */
+
   const handleMainCalNavigate = async (dateInfo: DatesSetArg) => {
     setCurrentDate(dateInfo.start);
     setIsLoading(true);
@@ -81,13 +81,13 @@ export default function Calendar() {
     }
   };
 
-  /** Navegação pelo mini calendário lateral */
+
   const handleMiniCalDateChange = (newDate: Date) => {
     setCurrentDate(newDate);
     calendarRef.current?.getApi().changeView("timeGridDay", newDate);
   };
 
-  /** Clique em um evento (abre modal) */
+
   const handleEventClick = (clickInfo: EventClickArg) => {
     const event = clickInfo.event;
     setSelectedEvent({
@@ -100,12 +100,12 @@ export default function Calendar() {
     });
   };
 
-  // Efeito para inicializar os dados de edição quando um evento é selecionado
+
   useEffect(() => {
     if (selectedEvent) {
       const start = new Date(selectedEvent.start as string);
       setEditedEvent({
-        date: start.toISOString().split("T")[0], // Formato YYYY-MM-DD
+        date: start.toISOString().split("T")[0],
         time: start.toLocaleTimeString("pt-BR", {
           hour: "2-digit",
           minute: "2-digit",
@@ -123,7 +123,6 @@ export default function Calendar() {
   };
 
   const handleSave = async () => {
-    // TODO: Implementar a lógica de chamada de API para salvar as alterações.
     console.log("Salvando alterações:", {
       id: selectedEvent?.id,
       ...editedEvent,
@@ -141,24 +140,23 @@ export default function Calendar() {
       }
 
       const eventoModificado = {
-        ...selectedEvent, // Mantém id, title, color
-        start: `${editedEvent.date}T${editedEvent.time}:00`, // Combina nova data e tempo
-        end: `${editedEvent.date}T${editedEvent.time}:00`, // (Assumindo que start e end são iguais)
+        ...selectedEvent,
+        start: `${editedEvent.date}T${editedEvent.time}:00`,
+        end: `${editedEvent.date}T${editedEvent.time}:00`,
         extendedProps: {
-          ...selectedEvent?.extendedProps, // Mantém nomePaciente, médico, etc.
+          ...selectedEvent?.extendedProps, 
           statusConsulta: editedEvent.status,
         },
       };
 
       setEventos((prevEvents) =>
         prevEvents.map((event) =>
-          event.id === selectedEvent?.id // ✅ Compara com o ID do evento selecionado
-            ? (eventoModificado as any) // ✅ Usa o objeto local e completo
+          event.id === selectedEvent?.id
+            ? (eventoModificado as any) 
             : event
         )
       );
 
-      // Aqui você atualizaria o estado 'eventos' com os dados retornados pela API
       setIsEditing(false);
       closeModal();
       alert("Alterações salvas com sucesso!");
@@ -170,18 +168,18 @@ export default function Calendar() {
 
   const handleCancel = () => {
     setIsEditing(false);
-    // Opcional: resetar 'editedEvent' se necessário, mas o useEffect já cuida disso na reabertura.
+
   };
 
-  /** Fechar modal */
+
   const closeModal = () => {
     setSelectedEvent(null);
-    setIsEditing(false); // Garante que o modo de edição seja resetado ao fechar
+    setIsEditing(false); 
   };
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      {/* Sidebar com filtros e mini calendário */}
+
+    <div className="flex flex-col md:flex-row min-h-screen md:h-screen md:overflow-hidden bg-gray-100">
       <SidebarCalendar
         filtrosAtivos={filtrosAtivos}
         onChangeFiltros={setFiltrosAtivos}
@@ -189,8 +187,8 @@ export default function Calendar() {
         onDateChange={handleMiniCalDateChange}
       />
 
-      {/* Área principal */}
-      <div className="flex-1 p-4 relative">
+
+      <div className="flex-1 p-4 relative overflow-auto">
         {isLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-70 z-10">
             <span className="text-gray-600 text-lg font-medium">
@@ -208,52 +206,56 @@ export default function Calendar() {
         />
       </div>
 
-      {/* Modal de Detalhes da Consulta */}
+
       {selectedEvent && (
         <div
           onClick={closeModal}
-          className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/20"
+          className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/30 p-4"
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="relative bg-white/90 rounded-3xl shadow-2xl w-full max-w-3xl p-10 border border-gray-200 backdrop-blur-md"
+            className="relative bg-white/95 rounded-2xl shadow-2xl w-[95%] sm:w-[90%] md:w-full max-w-xl md:max-w-3xl max-h-[90vh] overflow-y-auto p-6 md:p-10 border border-gray-200"
+            role="dialog"
+            aria-modal="true"
           >
-            {/* Faixa colorida lateral */}
+
             <div
-              className="absolute top-0 left-0 h-full w-3 rounded-l-3xl"
+              className="absolute top-0 left-0 h-full w-2 sm:w-3 rounded-l-2xl"
               style={{ backgroundColor: selectedEvent.color }}
+              aria-hidden
             />
 
-            {/* Botão de fechar */}
+
             <button
               onClick={closeModal}
-              className="absolute top-4 right-6 text-gray-500 hover:text-gray-800 text-2xl font-bold"
+              className="absolute top-3 right-3 md:top-4 md:right-6 text-gray-500 hover:text-gray-800 text-2xl font-bold"
+              aria-label="Fechar"
             >
               ×
             </button>
 
-            {/* Cabeçalho */}
-            <h2 className="text-3xl font-semibold text-gray-800 mb-6 border-b pb-3">
+
+            <h2 className="text-lg md:text-2xl font-semibold text-gray-800 mb-4 md:mb-6 border-b pb-3">
               {selectedEvent.title ?? "Detalhes da Consulta"}
             </h2>
 
-            {/* Corpo em 2 colunas */}
-            <div className="grid grid-cols-2 gap-6 text-gray-700">
+   
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-gray-700">
               <div>
-                <div className="mb-2">
-                  <label className="font-medium text-gray-900 block">
+                <div className="mb-3">
+                  <label className="font-medium text-gray-900 block mb-1">
                     Data:
                   </label>
                   {isEditing ? (
                     <input
                       type="date"
                       name="date"
-                      value={editedEvent.date}
+                      value={editedEvent?.date ?? ""}
                       onChange={handleEditChange}
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 text-sm"
                     />
                   ) : (
-                    <span>
+                    <span className="text-sm">
                       {new Date(selectedEvent.start ?? "").toLocaleDateString(
                         "pt-BR"
                       )}
@@ -261,20 +263,20 @@ export default function Calendar() {
                   )}
                 </div>
 
-                <div className="mb-2">
-                  <label className="font-medium text-gray-900 block">
+                <div className="mb-3">
+                  <label className="font-medium text-gray-900 block mb-1">
                     Horário:
                   </label>
                   {isEditing ? (
                     <input
                       type="time"
                       name="time"
-                      value={editedEvent.time}
+                      value={editedEvent?.time ?? ""}
                       onChange={handleEditChange}
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 text-sm"
                     />
                   ) : (
-                    <span>
+                    <span className="text-sm">
                       {new Date(selectedEvent.start ?? "").toLocaleTimeString(
                         "pt-BR",
                         {
@@ -286,12 +288,12 @@ export default function Calendar() {
                   )}
                 </div>
 
-                <p className="mb-2">
+                <p className="mb-3 text-sm">
                   <span className="font-medium text-gray-900">Médico(a):</span>
                   <br />
                   {selectedEvent.extendedProps?.["nomeProfissional"] ?? "—"}
                 </p>
-                <p className="mb-2">
+                <p className="mb-3 text-sm">
                   <span className="font-medium text-gray-900">
                     Especialidade:
                   </span>
@@ -302,7 +304,7 @@ export default function Calendar() {
               </div>
 
               <div>
-                <p className="mb-2">
+                <p className="mb-3 text-sm">
                   <span className="font-medium text-gray-900">
                     Código da Consulta:
                   </span>
@@ -310,7 +312,7 @@ export default function Calendar() {
                   {selectedEvent.extendedProps?.["codigoConsulta"] ?? "—"}
                 </p>
 
-                <p className="mb-2">
+                <p className="mb-3 text-sm">
                   <span className="font-medium text-gray-900">
                     Nome do Cuidador:
                   </span>
@@ -318,7 +320,7 @@ export default function Calendar() {
                   {selectedEvent.extendedProps?.["nomeCuidador"] || "—"}
                 </p>
 
-                <p className="mb-2">
+                <p className="mb-3 text-sm">
                   <span className="font-medium text-gray-900">
                     Telefone Paciente:
                   </span>
@@ -326,7 +328,7 @@ export default function Calendar() {
                   {selectedEvent.extendedProps?.["telefonePaciente"] || "—"}
                 </p>
 
-                <p className="mb-2">
+                <p className="mb-3 text-sm">
                   <span className="font-medium text-gray-900">
                     Telefone Cuidador:
                   </span>
@@ -336,26 +338,27 @@ export default function Calendar() {
               </div>
             </div>
 
-            {/* Status, Link e anotações */}
-            <div className="mt-8">
+            <div className="mt-6">
               <div className="mb-3">
-                <label className="font-medium text-gray-900 block">
+                <label className="font-medium text-gray-900 block mb-1">
                   Status da Consulta:
                 </label>
                 {isEditing ? (
                   <select
                     name="status"
-                    value={editedEvent.status}
+                    value={editedEvent?.status ?? "AGENDADO"}
                     onChange={handleEditChange}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 text-sm"
                   >
                     <option value="AGENDADA">Agendada</option>
                     <option value="REALIZADA">Realizada</option>
-                    <option value="PACIENTE NAO COMPARECEU">Paciente não compareceu</option>
+                    <option value="PACIENTE NAO COMPARECEU">
+                      Paciente não compareceu
+                    </option>
                     <option value="CANCELADA">Cancelada</option>
                   </select>
                 ) : (
-                  <span className="whitespace-pre-line">
+                  <span className="text-sm whitespace-pre-line">
                     {selectedEvent.extendedProps?.["statusConsulta"] ??
                       "AGENDADO"}
                   </span>
@@ -363,7 +366,7 @@ export default function Calendar() {
               </div>
 
               {selectedEvent.extendedProps?.["linkConsulta"] && (
-                <p className="mb-3">
+                <p className="mb-3 text-sm break-words">
                   <span className="font-medium text-gray-900">
                     Link da Consulta:
                   </span>
@@ -372,7 +375,7 @@ export default function Calendar() {
                     href={selectedEvent.extendedProps["linkConsulta"]}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-600 hover:underline break-words"
+                    className="text-blue-600 hover:underline break-all"
                   >
                     {selectedEvent.extendedProps["linkConsulta"]}
                   </a>
@@ -380,7 +383,7 @@ export default function Calendar() {
               )}
 
               {selectedEvent.extendedProps?.["anotacoes"] && (
-                <p className="mt-4">
+                <p className="mt-4 text-sm">
                   <span className="font-medium text-gray-900">Anotações:</span>
                   <br />
                   <span className="whitespace-pre-line">
@@ -390,36 +393,35 @@ export default function Calendar() {
               )}
             </div>
 
-            {/* Rodapé */}
-            <div className="mt-10 flex justify-end">
+
+            <div className="mt-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
               {isEditing ? (
                 <>
                   <button
                     onClick={handleCancel}
-                    className="px-6 py-2 rounded-xl bg-gray-500 text-white font-medium hover:bg-gray-600 transition mr-4"
+                    className="w-full sm:w-auto px-5 py-2 rounded-lg bg-gray-500 text-white font-medium hover:bg-gray-600 transition"
                   >
                     Cancelar
                   </button>
                   <button
                     onClick={handleSave}
-                    className="px-6 py-2 rounded-xl bg-green-600 text-white font-medium hover:bg-green-700 transition"
+                    className="w-full sm:w-auto px-5 py-2 rounded-lg bg-green-600 text-white font-medium hover:bg-green-700 transition"
                   >
                     Salvar
                   </button>
                 </>
               ) : (
                 <>
-                  {/* O botão "Editar" agora verifica o status da consulta */}
                   <button
                     onClick={() => setIsEditing(true)}
-                    disabled={
-                      ["REALIZADA", "CANCELADA"].includes(
-                        selectedEvent.extendedProps?.["statusConsulta"]
-                      )
-                    }
-                    className={`px-6 py-2 rounded-xl text-white font-medium transition mr-4 ${
-                      selectedEvent.extendedProps?.["statusConsulta"] === "REALIZADA" ||
-                      selectedEvent.extendedProps?.["statusConsulta"] === "CANCELADA"
+                    disabled={["REALIZADA", "CANCELADA"].includes(
+                      selectedEvent.extendedProps?.["statusConsulta"]
+                    )}
+                    className={`w-full sm:w-auto px-5 py-2 rounded-lg text-white font-medium transition ${
+                      selectedEvent.extendedProps?.["statusConsulta"] ===
+                        "REALIZADA" ||
+                      selectedEvent.extendedProps?.["statusConsulta"] ===
+                        "CANCELADA"
                         ? "bg-gray-400 cursor-not-allowed"
                         : "bg-yellow-500 hover:bg-yellow-600"
                     }`}
@@ -428,7 +430,7 @@ export default function Calendar() {
                   </button>
                   <button
                     onClick={closeModal}
-                    className="px-6 py-2 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition"
+                    className="w-full sm:w-auto px-5 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition"
                   >
                     Fechar
                   </button>
