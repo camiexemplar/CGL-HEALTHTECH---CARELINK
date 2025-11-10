@@ -164,7 +164,7 @@ CGL-HealthTech/
 git clone https://github.com/camiexemplar/CGL-HEALTHTECH---CARELINK
 
 # Acesse o diretório
-cd SPRINT-04-FRONT-END
+cd CGL-HEALTHTECH---CARELINK
 
 # Instale as dependências
 npm install
