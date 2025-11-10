@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import type { ProcessedData } from "./FileUploader";
 import { toast } from "sonner";
-import { API_BASE_URL } from "./ApiService";
+import { API_JAVA_URL } from "./ApiService";
 
 type ErrorState = Record<string, boolean>;
 
@@ -127,7 +127,11 @@ export default function ValidateForm() {
     });
   };
 
-  const handleCellChange = (rowIndex: number, key: string, newValue: string) => {
+  const handleCellChange = (
+    rowIndex: number,
+    key: string,
+    newValue: string
+  ) => {
     const maskedValue = applyMask(key, newValue);
     const errorKey = `${rowIndex}-${key}`;
     const isInvalid = validateCell(key, maskedValue);
@@ -184,7 +188,7 @@ export default function ValidateForm() {
     setLoading(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/upload/salvar`, {
+      const response = await fetch(`${API_JAVA_URL}/api/upload/salvar`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(processedData),
@@ -295,10 +299,14 @@ export default function ValidateForm() {
                       </p>
                     )}
                     {key.toLowerCase().includes("data") && isInvalid && (
-                      <p className="text-red-500 text-xs mt-1">Data inválida (DD-MM-YYYY)</p>
+                      <p className="text-red-500 text-xs mt-1">
+                        Data inválida (DD-MM-YYYY)
+                      </p>
                     )}
                     {key.toLowerCase().includes("hora") && isInvalid && (
-                      <p className="text-red-500 text-xs mt-1">Hora inválida (HH-MM)</p>
+                      <p className="text-red-500 text-xs mt-1">
+                        Hora inválida (HH-MM)
+                      </p>
                     )}
                   </div>
                 );
@@ -324,7 +332,7 @@ export default function ValidateForm() {
           onClick={() => setCurrentPage((p) => p + 1)}
           className="px-4 py-2 bg-blue-100 rounded-lg disabled:opacity-50 hover:bg-blue-200 transition"
         >
-          Próxima → 
+          Próxima →
         </button>
       </div>
 

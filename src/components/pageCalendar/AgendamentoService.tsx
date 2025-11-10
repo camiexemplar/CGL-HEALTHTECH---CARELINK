@@ -1,12 +1,12 @@
 /* eslint-disable react-refresh/only-export-components */
-import { API_BASE_URL } from "../ApiService";
+import { API_JAVA_URL } from "../ApiService";
 export { type AgendamentoApiDto } from "../../types/Calendario";
 import {
   type ProcessedData,
   type AgendamentoApiDto,
 } from "../../types/Calendario";
 
-const ENDPOINT = `${API_BASE_URL}/agendamentos`;
+const ENDPOINT = `${API_JAVA_URL}/agendamentos`;
 
 function parseDateTime(dateStr?: string, timeStr?: string): string | null {
   if (!dateStr) return null;
@@ -40,7 +40,9 @@ function mapProcessedToDto(p: ProcessedData): AgendamentoApiDto {
     const e = new Date(s.getTime() + 60 * 60 * 1000);
     endIso = e.toISOString();
   }
-  const title = `${p["especialidadeProfissional"] ?? ""} - ${p["nomePaciente"] ?? "Paciente"}`;
+  const title = `${p["especialidadeProfissional"] ?? ""} - ${
+    p["nomePaciente"] ?? "Paciente"
+  }`;
   return {
     title,
     start: startIso ?? new Date().toISOString(),

@@ -1,6 +1,10 @@
 import { useState, type Dispatch, type SetStateAction } from "react";
-import type { AnotacaoInputDTO, DadosPaciente, InteracaoEquipe } from "../../../types/Paciente";
-import { API_BASE_URL } from "../../ApiService";
+import type {
+  AnotacaoInputDTO,
+  DadosPaciente,
+  InteracaoEquipe,
+} from "../../../types/Paciente";
+import { API_JAVA_URL } from "../../ApiService";
 import { toast } from "sonner";
 
 export interface AnotacoesCardProps {
@@ -8,7 +12,10 @@ export interface AnotacoesCardProps {
   setPaciente: Dispatch<SetStateAction<DadosPaciente | null>>;
 }
 
-export function AnotacoesCard({ idPaciente: idPaciente, setPaciente: setPaciente }: AnotacoesCardProps) {
+export function AnotacoesCard({
+  idPaciente: idPaciente,
+  setPaciente: setPaciente,
+}: AnotacoesCardProps) {
   const [novaAnotacao, setNovaAnotacao] = useState("");
 
   const salvarAnotacao = async () => {
@@ -30,23 +37,27 @@ export function AnotacoesCard({ idPaciente: idPaciente, setPaciente: setPaciente
       conteudoAnotacao: novaAnotacao.trim(),
     };
 
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/anotacoes`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(anotacaoInput),
-        });
+    try {
+      const response = await fetch(`${API_JAVA_URL}/api/anotacoes`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(anotacaoInput),
+      });
 
-        if (!response.ok) {
-            throw new Error("Falha ao salvar a anotação no servidor.");
-        }
+      if (!response.ok) {
+        throw new Error("Falha ao salvar a anotação no servidor.");
+      }
 
-        setPaciente((prevState) => {
+      setPaciente((prevState) => {
         if (!prevState) return null;
 
         const timelineExistente = prevState.linhaDoTempo;
         const novaTimeline = [novaInteracao, ...timelineExistente];
 
+        // Remove duplicados pelo `id`
+        const timelineUnica = Array.from(
+          new Map(novaTimeline.map((item) => [item.id, item])).values()
+        );
 
         const timelineUnica = Array.from(new Map(novaTimeline.map(item => [item.id, item])).values());
 
@@ -60,10 +71,9 @@ export function AnotacoesCard({ idPaciente: idPaciente, setPaciente: setPaciente
       toast.success("Anotação registrada com sucesso!", {
         description: "Você poderá vê-la imediatamente na linha do tempo.",
       });
-
     } catch (error) {
-        console.error("Erro na persistência da anotação:", error);
-        alert("ERRO: Não foi possível salvar a anotação. Consulte o log.");
+      console.error("Erro na persistência da anotação:", error);
+      alert("ERRO: Não foi possível salvar a anotação. Consulte o log.");
     }
   };
   return (

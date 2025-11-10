@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { API_BASE_URL } from '../components/ApiService';
+import React, { useState, useRef, useEffect } from "react";
+import { API_CHAT_URL } from "../components/ApiService";
 
 interface Message {
   id: string;
@@ -10,7 +10,7 @@ interface Message {
 
 export function SendAlerts() {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [inputMessage, setInputMessage] = useState('');
+  const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -25,12 +25,14 @@ export function SendAlerts() {
 
   // mensagem de boas-vindas
   useEffect(() => {
-    setMessages([{
-      id: '1',
-      text: 'Olá! Sou o CareLink Assistant. Como posso ajudar você com os dados do hospital hoje?',
-      isUser: false,
-      timestamp: new Date()
-    }]);
+    setMessages([
+      {
+        id: "1",
+        text: "Olá! Sou o CareLink Assistant. Como posso ajudar você com os dados do hospital hoje?",
+        isUser: false,
+        timestamp: new Date(),
+      },
+    ]);
   }, []);
 
   const handleSendMessage = async () => {
@@ -41,16 +43,15 @@ export function SendAlerts() {
       id: Date.now().toString(),
       text: inputMessage,
       isUser: true,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
-    setMessages(prev => [...prev, userMessage]);
-    setInputMessage('');
+    setMessages((prev) => [...prev, userMessage]);
+    setInputMessage("");
     setIsLoading(true);
 
     try {
-  
-      const response = await fetch(`${API_BASE_URL}/api/staff-chat`, {
+      const response = await fetch(`${API_CHAT_URL}/api/staff-chat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -66,28 +67,28 @@ export function SendAlerts() {
       // adiciona resposta do bot
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: data.response || 'Desculpe, não consegui processar sua pergunta.',
+        text: data.response || "Desculpe, não consegui processar sua pergunta.",
         isUser: false,
-        timestamp: new Date()
+        timestamp: new Date(),
       };
 
-      setMessages(prev => [...prev, botMessage]);
+      setMessages((prev) => [...prev, botMessage]);
     } catch (error) {
-      console.error('Erro:', error);
+      console.error("Erro:", error);
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: 'Erro de conexão. Tente novamente.',
+        text: "Erro de conexão. Tente novamente.",
         isUser: false,
-        timestamp: new Date()
+        timestamp: new Date(),
       };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
     }
@@ -98,7 +99,7 @@ export function SendAlerts() {
     "Quantos pacientes temos no sistema?",
     "Quantas faltas na semana passada?",
     "Qual médico tem mais consultas?",
-    "Quantos agendamentos para hoje?"
+    "Quantos agendamentos para hoje?",
   ];
 
   const handleQuickQuestion = (question: string) => {
@@ -126,34 +127,45 @@ export function SendAlerts() {
                 {messages.map((message) => (
                   <div
                     key={message.id}
-                    className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
+                    className={`flex ${
+                      message.isUser ? "justify-end" : "justify-start"
+                    }`}
                   >
                     <div
                       className={`max-w-xs lg:max-w-md rounded-lg p-3 ${
                         message.isUser
-                          ? 'bg-blue-500 text-white rounded-br-none'
-                          : 'bg-gray-100 text-gray-800 rounded-bl-none'
+                          ? "bg-blue-500 text-white rounded-br-none"
+                          : "bg-gray-100 text-gray-800 rounded-bl-none"
                       }`}
                     >
                       <p className="text-sm">{message.text}</p>
-                      <p className={`text-xs mt-1 ${
-                        message.isUser ? 'text-blue-100' : 'text-gray-500'
-                      }`}>
-                        {message.timestamp.toLocaleTimeString([], { 
-                          hour: '2-digit', minute: '2-digit' 
+                      <p
+                        className={`text-xs mt-1 ${
+                          message.isUser ? "text-blue-100" : "text-gray-500"
+                        }`}
+                      >
+                        {message.timestamp.toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
                         })}
                       </p>
                     </div>
                   </div>
                 ))}
-                
+
                 {isLoading && (
                   <div className="flex justify-start">
                     <div className="bg-gray-100 rounded-lg rounded-bl-none p-3">
                       <div className="flex space-x-2">
                         <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+                        <div
+                          className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                          style={{ animationDelay: "0.2s" }}
+                        ></div>
+                        <div
+                          className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                          style={{ animationDelay: "0.4s" }}
+                        ></div>
                       </div>
                     </div>
                   </div>

@@ -27,7 +27,7 @@ export function PesquisaPaciente({ setIdPaciente }: PesquisaPacienteProps) {
       >
         <input
           type="text"
-          placeholder="Ex: PACIENTE-7890"
+          placeholder="Ex: 1, João Silva, (11) 91234-5678"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           className="flex-grow p-3 border-2 border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150"

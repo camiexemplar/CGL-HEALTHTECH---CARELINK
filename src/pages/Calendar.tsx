@@ -13,7 +13,7 @@ import {
   AgendamentoService,
   type AgendamentoApiDto,
 } from "../components/pageCalendar/AgendamentoService";
-import { API_BASE_URL } from "../components/ApiService";
+import { API_JAVA_URL } from "../components/ApiService";
 
 export default function Calendar() {
   const [eventos, setEventos] = useState<EventInput[]>([]);
@@ -27,7 +27,7 @@ export default function Calendar() {
   const [editedEvent, setEditedEvent] = useState<any>(null);
   const calendarRef = useRef<FullCalendar>(null);
 
-  const ENDPOINT = `${API_BASE_URL}/agendamentos`;
+  const ENDPOINT = `${API_JAVA_URL}/agendamentos`;
 
   /** Converte o DTO da API para o formato aceito pelo FullCalendar */
   function dtoToEventInput(dto: AgendamentoApiDto): EventInput {

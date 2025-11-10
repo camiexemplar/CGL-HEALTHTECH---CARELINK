@@ -1,7 +1,7 @@
 import { useState, type ChangeEvent, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
-import { API_BASE_URL } from "./ApiService";
+import { API_JAVA_URL } from "./ApiService";
 export type ProcessedData = Record<string, string | number | boolean>;
 type UploadStatus = "idle" | "uploading" | "success" | "error";
 
@@ -29,7 +29,7 @@ export default function FileUploader() {
 
         toast.error("Tipo de arquivo inválido. Por favor, envie um .xlsx.");
         setFile(null);
-        e.target.value = ""; 
+        e.target.value = "";
         return;
       }
 
@@ -69,7 +69,7 @@ export default function FileUploader() {
       const formData = new FormData();
       formData.append("planilha", file);
 
-      const response = await fetch(`${API_BASE_URL}/api/upload/receber`, {
+      const response = await fetch(`${API_JAVA_URL}/api/upload/receber`, {
         method: "POST",
         body: formData,
       });
@@ -83,7 +83,6 @@ export default function FileUploader() {
 
       setStatus("success");
       navigate("/validate");
-
     } catch (err) {
       console.error("Erro no upload:", err);
       setStatus("error");
@@ -100,7 +99,9 @@ export default function FileUploader() {
         Upload de Arquivo
       </h1>
       <div className="flex justify-center items-center text-sm sm:text-base text-gray-600 mb-6">
-        <span className="font-semibold text-gray-800">1. Realizando o UPLOAD</span>
+        <span className="font-semibold text-gray-800">
+          1. Realizando o UPLOAD
+        </span>
         <span className="mx-4">|</span>
         <span>2. Validando</span>
         <span className="mx-4">|</span>

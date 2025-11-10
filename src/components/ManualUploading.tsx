@@ -1,9 +1,8 @@
 import { useState, type FormEvent, type ChangeEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner"; // <-- 1. IMPORTAR O TOAST
-import { API_BASE_URL } from "./ApiService";
+import { API_JAVA_URL } from "./ApiService";
 import { CATEGORIAS_CONSULTA } from "./pageCalendar/dataCalendar";
-
 
 interface ProcessedData {
   "Data agenda": string;
@@ -15,16 +14,16 @@ interface ProcessedData {
   "Nome acompanhante": string;
   "Número acompanhante": string;
   "Nome medico": string;
-  "Especialidade": string;
-  "Código": number;
-  "OBS": string;
-  "CEP": string; 
+  Especialidade: string;
+  Código: number;
+  OBS: string;
+  CEP: string;
 }
 
 export default function ManualUploading() {
   const navigate = useNavigate();
 
-  const [isSubmitting, setIsSubmitting] = useState(false); 
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [formData, setFormData] = useState<ProcessedData>({
     "Data agenda": "",
@@ -36,10 +35,10 @@ export default function ManualUploading() {
     "Nome acompanhante": "",
     "Número acompanhante": "",
     "Nome medico": "",
-    "Especialidade": "",
-    "Código": 0,
-    "OBS": "",
-    "CEP": "", 
+    Especialidade: "",
+    Código: 0,
+    OBS: "",
+    CEP: "",
   });
 
   // datas
@@ -108,7 +107,9 @@ export default function ManualUploading() {
         horaAgendamento: formData["Hora Agenda"],
         nomePaciente: formData["Nome paciente"],
         numeroPaciente: formatPhone(formData["Número celular"]),
-        dataNascimentoPaciente: formatDateForBackend(formData["Data nascimento"]),
+        dataNascimentoPaciente: formatDateForBackend(
+          formData["Data nascimento"]
+        ),
         afinidadeDigital: formData["Afinidade Digital"],
         nomeAcompanhante: formData["Nome acompanhante"],
         numeroAcompanhante: formatPhone(formData["Número acompanhante"]),
@@ -120,7 +121,7 @@ export default function ManualUploading() {
     ];
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/upload/salvar`, {
+      const response = await fetch(`${API_JAVA_URL}/api/upload/salvar`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -131,14 +132,12 @@ export default function ManualUploading() {
       // setStatus("success"); // <-- Removido
       toast.success("Dados enviados com sucesso!"); // <-- 4. CHAMAR O TOAST DE SUCESSO
       navigate("/importar");
-
     } catch (err) {
       console.error("Erro ao enviar dados manuais:", err);
 
-      toast.error("Não foi possível enviar os dados. Tente novamente."); 
-    
+      toast.error("Não foi possível enviar os dados. Tente novamente.");
     } finally {
-      setIsSubmitting(false); 
+      setIsSubmitting(false);
     }
   }
 
@@ -149,7 +148,9 @@ export default function ManualUploading() {
       </h1>
 
       <div className="flex justify-center items-center text-sm sm:text-base text-gray-600 mb-6">
-        <span className="font-semibold text-gray-800">1. Realizando o UPLOAD</span>
+        <span className="font-semibold text-gray-800">
+          1. Realizando o UPLOAD
+        </span>
         <span className="mx-4">|</span>
         <span>2. Validando</span>
         <span className="mx-4">|</span>
@@ -253,7 +254,9 @@ export default function ManualUploading() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Observações</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Observações
+          </label>
           <textarea
             name="OBS"
             value={formData["OBS"] || ""}
@@ -266,14 +269,14 @@ export default function ManualUploading() {
         <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mt-4">
           <button
             type="submit"
-            disabled={isSubmitting} 
+            disabled={isSubmitting}
             className={`px-6 py-2 font-medium rounded-lg shadow transition w-full sm:w-auto ${
-              isSubmitting 
+              isSubmitting
                 ? "bg-gray-400 cursor-not-allowed text-white"
                 : "bg-blue-600 hover:bg-blue-700 text-white"
             }`}
           >
-            {isSubmitting ? "Enviando..." : "Enviar Dados"} 
+            {isSubmitting ? "Enviando..." : "Enviar Dados"}
           </button>
 
           <button
@@ -284,9 +287,6 @@ export default function ManualUploading() {
             Voltar
           </button>
         </div>
-
-
-        
       </form>
 
       <p className="mt-6 text-sm text-gray-600 text-center">
@@ -302,7 +302,6 @@ export default function ManualUploading() {
   );
 }
 
-
 interface InputFieldProps {
   label: string;
   name: string;
@@ -311,9 +310,20 @@ interface InputFieldProps {
   required?: boolean;
   min?: string;
   max?: string;
-  onChange: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
+  onChange: (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => void;
 }
-function InputField({ label, name, value, onChange, type = "text", required = false, min, max }: InputFieldProps) {
+function InputField({
+  label,
+  name,
+  value,
+  onChange,
+  type = "text",
+  required = false,
+  min,
+  max,
+}: InputFieldProps) {
   return (
     <div className="flex flex-col">
       <label className="text-sm font-medium text-gray-700 mb-1">{label}</label>
@@ -337,9 +347,18 @@ interface SelectFieldProps {
   value: string;
   options: string[];
   required?: boolean;
-  onChange: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
+  onChange: (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => void;
 }
-function SelectField({ label, name, value, options, onChange, required = false }: SelectFieldProps) {
+function SelectField({
+  label,
+  name,
+  value,
+  options,
+  onChange,
+  required = false,
+}: SelectFieldProps) {
   return (
     <div className="flex flex-col">
       <label className="text-sm font-medium text-gray-700 mb-1">{label}</label>
