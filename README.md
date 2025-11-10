@@ -161,7 +161,7 @@ CGL-HealthTech/
 
 ```bash
 # Clone o repositório
-git clone https://github.com/camiexemplar/SPRINT-04-FRONT-END.git
+git clone https://github.com/camiexemplar/CGL-HEALTHTECH---CARELINK
 
 # Acesse o diretório
 cd SPRINT-04-FRONT-END
