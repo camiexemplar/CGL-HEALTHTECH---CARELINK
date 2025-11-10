@@ -1,7 +1,3 @@
-Pronto\! Adicionei o link de deploy da Vercel à seção "Links Importantes" do seu README.
-
------
-
 # CGL HealthTech - Plataforma
 
 Sistema de gestão hospitalar desenvolvido para o Hospital das Clínicas, proporcionando uma plataforma digital segura e eficiente para gerenciamento de informações de pacientes, dashboards de gestão e alertas de consultas.
