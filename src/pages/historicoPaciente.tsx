@@ -12,16 +12,15 @@ export function HistoricoPaciente() {
 
   const {
     idPaciente: idPacienteDoHook,
-    setIdPaciente: setIdPaciente,
-    paciente: paciente,
-    setPaciente: setPaciente,
-    carregando: carregando,
+    setIdPaciente,
+    paciente,
+    setPaciente,
+    carregando,
   } = useDadosPaciente();
 
   useEffect(() => {
-    // Se há um ID na URL, mas o Hook ainda não tem esse ID (para evitar loops)
     if (idPacienteUrl && idPacienteUrl !== idPacienteDoHook) {
-        setIdPaciente(idPacienteUrl);
+      setIdPaciente(idPacienteUrl);
     }
   }, [idPacienteUrl, idPacienteDoHook, setIdPaciente]);
 
@@ -35,7 +34,7 @@ export function HistoricoPaciente() {
 
   if (!idPacienteDoHook || carregando) {
     return (
-      <div className="justify-center">
+      <div className="flex justify-center items-center min-h-screen bg-gray-50">
         {carregando ? (
           <div className="text-xl text-blue-600">
             Carregando Histórico de {idPacienteDoHook}...
@@ -64,12 +63,14 @@ export function HistoricoPaciente() {
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      <div className="w-1/4 p-6 bg-gray-50 border-r border-gray-200">
+    <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
+
+      <div className="w-full lg:w-1/4 p-4 lg:p-6 bg-gray-50 border-b lg:border-b-0 lg:border-r border-gray-200">
         <BlocoIdentificacao paciente={paciente} />
       </div>
 
-      <div className="w-2/4 overflow-y-auto p-6">
+
+      <div className="w-full lg:w-2/4 overflow-y-auto p-4 lg:p-6 order-3 lg:order-none">
         <LinhaDoTempo
           linhaDoTempo={filteredAndSortedHistory}
           setPaciente={setPaciente}
@@ -80,7 +81,8 @@ export function HistoricoPaciente() {
         />
       </div>
 
-      <div className="w-1/4 p-6 bg-gray-100 border-l border-gray-200">
+
+      <div className="w-full lg:w-1/4 p-4 lg:p-6 bg-gray-100 border-t lg:border-t-0 lg:border-l border-gray-200 order-2 lg:order-none">
         <BlocoDeAcoes
           idPaciente={paciente.idPaciente}
           setPaciente={setPaciente}

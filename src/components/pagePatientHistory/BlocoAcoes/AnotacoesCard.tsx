@@ -59,6 +59,8 @@ export function AnotacoesCard({
           new Map(novaTimeline.map((item) => [item.id, item])).values()
         );
 
+        const timelineUnica = Array.from(new Map(novaTimeline.map(item => [item.id, item])).values());
+
         return {
           ...prevState,
           linhaDoTempo: timelineUnica,

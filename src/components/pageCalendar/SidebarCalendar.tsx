@@ -1,7 +1,7 @@
-import React from 'react';
-import Calendar from 'react-calendar';
-import 'react-calendar/dist/Calendar.css';
-import { CATEGORIAS_CONSULTA } from './dataCalendar';
+import React from "react";
+import Calendar from "react-calendar";
+import "react-calendar/dist/Calendar.css";
+import { CATEGORIAS_CONSULTA } from "./dataCalendar";
 
 interface Props {
   filtrosAtivos: string[];
@@ -15,7 +15,7 @@ export default function SidebarCalendar({
   filtrosAtivos,
   onChangeFiltros,
   currentDate,
-  onDateChange
+  onDateChange,
 }: Props) {
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value, checked } = e.target;
@@ -31,32 +31,36 @@ export default function SidebarCalendar({
     }
   };
 
- //estilização das datas
- 
+  //estilização das datas
   const tileClassName = ({ date, view }: { date: Date; view: string }) => {
-    if (view === 'month') {
+    if (view === "month") {
       const sameDay =
         date.getFullYear() === currentDate.getFullYear() &&
         date.getMonth() === currentDate.getMonth() &&
         date.getDate() === currentDate.getDate();
-      if (sameDay) return 'bg-blue-500 text-white rounded-full';
+      if (sameDay) return "bg-blue-500 text-white rounded-full";
     }
-    return '';
+    return "";
   };
 
   return (
-    <aside className="w-64 p-4 space-y-6 bg-gray-50 border-r border-gray-200">
+    // MODIFICADO: Adicionado w-full, md:w-64, border-b, md:border-r
+    <aside className="w-full md:w-64 p-4 space-y-6 bg-gray-50 border-b md:border-r border-gray-200">
       <div>
         <Calendar
-          onChange={(value) => handleMiniCalChange(value as Date | [Date, Date] | null)}
+          onChange={(value) =>
+            handleMiniCalChange(value as Date | [Date, Date] | null)
+          }
           value={currentDate}
           locale="pt-BR"
           tileClassName={tileClassName}
           className="border-none"
         />
-        
+
         <div className="border-t pt-6">
-          <h2 className="text-lg font-semibold text-gray-800">Filtros de Consulta</h2>
+          <h2 className="text-lg font-semibold text-gray-800">
+            Filtros de Consulta
+          </h2>
           <div className="flex flex-col space-y-3 mt-4">
             {CATEGORIAS_CONSULTA.map((categoria) => (
               <label
@@ -76,7 +80,6 @@ export default function SidebarCalendar({
             ))}
           </div>
         </div>
-        
       </div>
     </aside>
   );
