@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useRef, useEffect, type ChangeEvent } from "react";
 import {
   type EventInput,
   type EventClickArg,
@@ -15,6 +15,12 @@ import {
 } from "../components/pageCalendar/AgendamentoService";
 import { API_JAVA_URL } from "../components/ApiService";
 
+interface EditedEvent {
+  date: string;
+  time: string;
+  status: string;
+}
+
 export default function Calendar() {
   const [eventos, setEventos] = useState<EventInput[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -24,7 +30,7 @@ export default function Calendar() {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [selectedEvent, setSelectedEvent] = useState<EventInput | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [editedEvent, setEditedEvent] = useState<any>(null);
+  const [editedEvent, setEditedEvent] = useState<EditedEvent | null>(null);
   const calendarRef = useRef<FullCalendar>(null);
 
   const ENDPOINT = `${API_JAVA_URL}/agendamentos`;
@@ -46,22 +52,18 @@ export default function Calendar() {
       color: categoria?.color ?? "#6b7280",
       extendedProps: {
         ...dto.extended,
-        categoriaId: categoria?.id ?? "outros", 
+        categoriaId: categoria?.id ?? "outros",
         codigoConsulta: dto.extended?.["idConsulta"] ?? "",
       },
     };
   }
 
-
   const eventosFiltrados = useMemo(() => {
     return eventos.filter((evento) => {
-      const categoriaId = evento.extendedProps?.categoriaId as
-        | string
-        | undefined;
+      const categoriaId = evento.extendedProps?.categoriaId as string | undefined;
       return !categoriaId || filtrosAtivos.includes(categoriaId);
     });
   }, [eventos, filtrosAtivos]);
-
 
   const handleMainCalNavigate = async (dateInfo: DatesSetArg) => {
     setCurrentDate(dateInfo.start);
@@ -81,12 +83,10 @@ export default function Calendar() {
     }
   };
 
-
   const handleMiniCalDateChange = (newDate: Date) => {
     setCurrentDate(newDate);
     calendarRef.current?.getApi().changeView("timeGridDay", newDate);
   };
-
 
   const handleEventClick = (clickInfo: EventClickArg) => {
     const event = clickInfo.event;
@@ -100,7 +100,6 @@ export default function Calendar() {
     });
   };
 
-
   useEffect(() => {
     if (selectedEvent) {
       const start = new Date(selectedEvent.start as string);
@@ -110,26 +109,28 @@ export default function Calendar() {
           hour: "2-digit",
           minute: "2-digit",
         }),
-        status: selectedEvent.extendedProps?.["statusConsulta"] ?? "AGENDADO",
+        status: (selectedEvent.extendedProps?.["statusConsulta"] as string) ?? "AGENDADO",
       });
     }
   }, [selectedEvent]);
 
-  const handleEditChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
+  const handleEditChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setEditedEvent((prev: any) => ({ ...prev, [name]: value }));
+    setEditedEvent((prev) =>
+      prev ? { ...prev, [name]: value } : { date: "", time: "", status: "" }
+    );
   };
 
   const handleSave = async () => {
+    if (!selectedEvent || !editedEvent) return;
+
     console.log("Salvando alterações:", {
-      id: selectedEvent?.id,
+      id: selectedEvent.id,
       ...editedEvent,
     });
 
     try {
-      const response = await fetch(`${ENDPOINT}/${selectedEvent?.id}`, {
+      const response = await fetch(`${ENDPOINT}/${selectedEvent.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(editedEvent),
@@ -139,22 +140,18 @@ export default function Calendar() {
         throw new Error("Falha ao salvar as alterações no banco.");
       }
 
-      const eventoModificado = {
+      const eventoModificado: EventInput = {
         ...selectedEvent,
         start: `${editedEvent.date}T${editedEvent.time}:00`,
         end: `${editedEvent.date}T${editedEvent.time}:00`,
         extendedProps: {
-          ...selectedEvent?.extendedProps, 
+          ...selectedEvent.extendedProps,
           statusConsulta: editedEvent.status,
         },
       };
 
       setEventos((prevEvents) =>
-        prevEvents.map((event) =>
-          event.id === selectedEvent?.id
-            ? (eventoModificado as any) 
-            : event
-        )
+        prevEvents.map((event) => (event.id === selectedEvent.id ? eventoModificado : event))
       );
 
       setIsEditing(false);
@@ -166,19 +163,14 @@ export default function Calendar() {
     }
   };
 
-  const handleCancel = () => {
-    setIsEditing(false);
-
-  };
-
+  const handleCancel = () => setIsEditing(false);
 
   const closeModal = () => {
     setSelectedEvent(null);
-    setIsEditing(false); 
+    setIsEditing(false);
   };
 
   return (
-
     <div className="flex flex-col md:flex-row min-h-screen md:h-screen md:overflow-hidden bg-gray-100">
       <SidebarCalendar
         filtrosAtivos={filtrosAtivos}
@@ -186,7 +178,6 @@ export default function Calendar() {
         currentDate={currentDate}
         onDateChange={handleMiniCalDateChange}
       />
-
 
       <div className="flex-1 p-4 relative overflow-auto">
         {isLoading && (
@@ -206,7 +197,6 @@ export default function Calendar() {
         />
       </div>
 
-
       {selectedEvent && (
         <div
           onClick={closeModal}
@@ -218,13 +208,11 @@ export default function Calendar() {
             role="dialog"
             aria-modal="true"
           >
-
             <div
               className="absolute top-0 left-0 h-full w-2 sm:w-3 rounded-l-2xl"
               style={{ backgroundColor: selectedEvent.color }}
               aria-hidden
             />
-
 
             <button
               onClick={closeModal}
@@ -234,104 +222,84 @@ export default function Calendar() {
               ×
             </button>
 
-
             <h2 className="text-lg md:text-2xl font-semibold text-gray-800 mb-4 md:mb-6 border-b pb-3">
               {selectedEvent.title ?? "Detalhes da Consulta"}
             </h2>
 
-   
+            {/* Bloco principal */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-gray-700">
               <div>
-                <div className="mb-3">
-                  <label className="font-medium text-gray-900 block mb-1">
-                    Data:
-                  </label>
-                  {isEditing ? (
-                    <input
-                      type="date"
-                      name="date"
-                      value={editedEvent?.date ?? ""}
-                      onChange={handleEditChange}
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 text-sm"
-                    />
-                  ) : (
-                    <span className="text-sm">
-                      {new Date(selectedEvent.start ?? "").toLocaleDateString(
-                        "pt-BR"
-                      )}
-                    </span>
-                  )}
-                </div>
+<div className="mb-3">
+                <label className="font-medium text-gray-900 block mb-1">Data:</label>
+                {isEditing ? (
+                  <input
+                    type="date"
+                    name="date"
+                    value={editedEvent?.date ?? ""}
+                    onChange={handleEditChange}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 text-sm"
+                  />
+                ) : (
+                  <span className="text-sm">
+                    {new Date((selectedEvent.start ?? "") as string).toLocaleDateString("pt-BR")}
+                  </span>
+                )}
+              </div>
 
-                <div className="mb-3">
-                  <label className="font-medium text-gray-900 block mb-1">
-                    Horário:
-                  </label>
-                  {isEditing ? (
-                    <input
-                      type="time"
-                      name="time"
-                      value={editedEvent?.time ?? ""}
-                      onChange={handleEditChange}
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 text-sm"
-                    />
-                  ) : (
-                    <span className="text-sm">
-                      {new Date(selectedEvent.start ?? "").toLocaleTimeString(
-                        "pt-BR",
-                        {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        }
-                      )}
-                    </span>
-                  )}
-                </div>
+              <div className="mb-3">
+                <label className="font-medium text-gray-900 block mb-1">Horário:</label>
+                {isEditing ? (
+                  <input
+                    type="time"
+                    name="time"
+                    value={editedEvent?.time ?? ""}
+                    onChange={handleEditChange}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 text-sm"
+                  />
+                ) : (
+                  <span className="text-sm">
+                    {new Date((selectedEvent.start ?? "") as string).toLocaleTimeString("pt-BR", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                )}
+              </div>
 
                 <p className="mb-3 text-sm">
                   <span className="font-medium text-gray-900">Médico(a):</span>
                   <br />
                   {selectedEvent.extendedProps?.["nomeProfissional"] ?? "—"}
                 </p>
+
                 <p className="mb-3 text-sm">
-                  <span className="font-medium text-gray-900">
-                    Especialidade:
-                  </span>
+                  <span className="font-medium text-gray-900">Especialidade:</span>
                   <br />
-                  {selectedEvent.extendedProps?.["especialidadeProfissional"] ??
-                    "—"}
+                  {selectedEvent.extendedProps?.["especialidadeProfissional"] ?? "—"}
                 </p>
               </div>
 
               <div>
                 <p className="mb-3 text-sm">
-                  <span className="font-medium text-gray-900">
-                    Código da Consulta:
-                  </span>
+                  <span className="font-medium text-gray-900">Código da Consulta:</span>
                   <br />
                   {selectedEvent.extendedProps?.["codigoConsulta"] ?? "—"}
                 </p>
 
                 <p className="mb-3 text-sm">
-                  <span className="font-medium text-gray-900">
-                    Nome do Cuidador:
-                  </span>
+                  <span className="font-medium text-gray-900">Nome do Cuidador:</span>
                   <br />
                   {selectedEvent.extendedProps?.["nomeCuidador"] || "—"}
                 </p>
 
                 <p className="mb-3 text-sm">
-                  <span className="font-medium text-gray-900">
-                    Telefone Paciente:
-                  </span>
+                  <span className="font-medium text-gray-900">Telefone Paciente:</span>
                   <br />
                   {selectedEvent.extendedProps?.["telefonePaciente"] || "—"}
                 </p>
 
                 <p className="mb-3 text-sm">
-                  <span className="font-medium text-gray-900">
-                    Telefone Cuidador:
-                  </span>
+                  <span className="font-medium text-gray-900">Telefone Cuidador:</span>
                   <br />
                   {selectedEvent.extendedProps?.["telefoneCuidador"] || "—"}
                 </p>
@@ -340,9 +308,7 @@ export default function Calendar() {
 
             <div className="mt-6">
               <div className="mb-3">
-                <label className="font-medium text-gray-900 block mb-1">
-                  Status da Consulta:
-                </label>
+                <label className="font-medium text-gray-900 block mb-1">Status da Consulta:</label>
                 {isEditing ? (
                   <select
                     name="status"
@@ -359,17 +325,14 @@ export default function Calendar() {
                   </select>
                 ) : (
                   <span className="text-sm whitespace-pre-line">
-                    {selectedEvent.extendedProps?.["statusConsulta"] ??
-                      "AGENDADO"}
+                    {selectedEvent.extendedProps?.["statusConsulta"] ?? "AGENDADO"}
                   </span>
                 )}
               </div>
 
               {selectedEvent.extendedProps?.["linkConsulta"] && (
                 <p className="mb-3 text-sm break-words">
-                  <span className="font-medium text-gray-900">
-                    Link da Consulta:
-                  </span>
+                  <span className="font-medium text-gray-900">Link da Consulta:</span>
                   <br />
                   <a
                     href={selectedEvent.extendedProps["linkConsulta"]}
@@ -392,7 +355,6 @@ export default function Calendar() {
                 </p>
               )}
             </div>
-
 
             <div className="mt-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
               {isEditing ? (
@@ -418,10 +380,8 @@ export default function Calendar() {
                       selectedEvent.extendedProps?.["statusConsulta"]
                     )}
                     className={`w-full sm:w-auto px-5 py-2 rounded-lg text-white font-medium transition ${
-                      selectedEvent.extendedProps?.["statusConsulta"] ===
-                        "REALIZADA" ||
-                      selectedEvent.extendedProps?.["statusConsulta"] ===
-                        "CANCELADA"
+                      selectedEvent.extendedProps?.["statusConsulta"] === "REALIZADA" ||
+                      selectedEvent.extendedProps?.["statusConsulta"] === "CANCELADA"
                         ? "bg-gray-400 cursor-not-allowed"
                         : "bg-yellow-500 hover:bg-yellow-600"
                     }`}
